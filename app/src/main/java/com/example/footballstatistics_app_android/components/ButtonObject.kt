@@ -1,5 +1,6 @@
 package com.example.footballstatistics_app_android.components
 
+import android.icu.text.ListFormatter.Width
 import android.provider.CalendarContract.Colors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,19 +18,32 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.footballstatistics_app_android.Theme.black
+import com.example.footballstatistics_app_android.Theme.white
 
 
 @Composable
-fun ButtonObject(onClick: () -> Unit, text : String, bgcolor : Color, textcolor : Color) {
+fun ButtonObject(
+    onClick: () -> Unit,
+    text: String,
+    bgcolor: Color,
+    textcolor: Color,
+    width: Dp,
+    height: Dp,
+) {
     Button(
-        onClick = { onClick() },
+        onClick = onClick,
         modifier = Modifier
-            .size(width = 200.dp, height = 60.dp)  // Custom size
+            .size(width = width, height = height)  // Custom size
             .padding(8.dp),  // Add border
-        shape = RoundedCornerShape(16.dp),  // Rounded corners
+        shape = RoundedCornerShape(8.dp),  // Rounded corners
         colors = ButtonDefaults.buttonColors(  // Custom colors
             containerColor = bgcolor,
             contentColor = textcolor
@@ -39,6 +53,13 @@ fun ButtonObject(onClick: () -> Unit, text : String, bgcolor : Color, textcolor 
             pressedElevation = 2.dp
         )
     ) {
-        Text(text)
+        Text(
+            text = text,
+            style = TextStyle(
+                color = textcolor, // Text color
+                fontSize = 24.sp, // Text size
+                fontWeight = FontWeight.Bold, // Text weight
+            )
+        )
     }
 }

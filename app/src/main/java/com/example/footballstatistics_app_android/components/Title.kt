@@ -15,22 +15,26 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.footballstatistics_app_android.R
+import com.example.footballstatistics_app_android.Theme.white
 
 @Composable
 fun ViewTitle(title: String, image: Int) {
     Box( // Use a Box to layer elements
         modifier = Modifier
             .fillMaxWidth()
-            .height(150.dp)
-    ) { // Box doesn't have background property, so we use Modifier on it's children.
+            .height(200.dp)
+    ) {
         Image(
             painter = painterResource(id = image),
             contentDescription = "Background Image",
@@ -42,22 +46,30 @@ fun ViewTitle(title: String, image: Int) {
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.5f))
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.1f))
                     )
                 )
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween, // Use SpaceBetween for logo
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Bottom,
                 modifier = Modifier
                     .fillMaxSize() // Row fills the gradient Box
-                    .padding(16.dp) // Add padding for the content
+                    .padding(horizontal = 32.dp, vertical = 64.dp) // Add padding for the content
             ) {
                 Text(
                     text = title,
-                    fontSize = 40.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White
+                    style = TextStyle(
+                        fontSize = 48.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = white,
+                        shadow = Shadow(
+                            color = Color.Black,
+                            offset = Offset(2f, 2f),
+                            blurRadius = 3f
+                        )
+                    ),
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
                 Image(
                     painter = painterResource(id = R.drawable.logo),

@@ -15,27 +15,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
+import com.example.footballstatistics_app_android.Theme.black
+import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.components.ViewTitle
 
 @Composable
-fun CalendarPage(modifier: Modifier = Modifier) {
+fun CalendarPage(modifier: Modifier = Modifier, navController: NavController, updateSelectedItemIndex: (Int) -> Unit) {
     Column(
         modifier = Modifier
-            .fillMaxSize().background(Color(0xff242424)),
+            .fillMaxSize().background(black),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
         ViewTitle(title = "Calendar", image = R.drawable.calendar_img)
         Spacer(modifier = Modifier.height(8.dp))
-        Text("This is a sample screen layout.", color = Color.White, fontSize = 18.sp)
+        Text("This is a sample screen layout.", color = white, fontSize = 18.sp)
         Spacer(modifier = Modifier.height(32.dp))
         ButtonObject(
             onClick = { /* Handle button click */ },
             text = "Click Me",
             bgcolor = Color(0xff59834a),
-            textcolor = Color.White
+            textcolor = white,
+            width = 200.dp,
+            height = 50.dp
         )
     }
 }

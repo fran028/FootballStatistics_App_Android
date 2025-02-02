@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
@@ -28,8 +29,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -46,7 +49,8 @@ data class BottomNavigationItem(
     val title: String,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
-    val hasNews: Boolean
+    val hasNews: Boolean,
+    val indicatorColor: Color
 )
 
 class MainActivity : ComponentActivity() {
@@ -80,24 +84,28 @@ class MainActivity : ComponentActivity() {
                         title = "Home",
                         selectedIcon = Icons.Filled.Home,
                         unselectedIcon = Icons.Outlined.Home,
+                        indicatorColor = Color(0xfffdcb60),
                         hasNews = false
                     ),
                     BottomNavigationItem(
                         title = "Calendar",
                         selectedIcon = Icons.Filled.DateRange,
                         unselectedIcon = Icons.Outlined.DateRange,
+                        indicatorColor = Color(0xff7da8e8),
                         hasNews = false
                     ),
                     BottomNavigationItem(
                         title = "Profile",
                         selectedIcon = Icons.Filled.Person,
                         unselectedIcon = Icons.Outlined.Person,
+                        indicatorColor = Color(0xff59834a),
                         hasNews = false
                     ),
                     BottomNavigationItem(
                         title = "Setting",
                         selectedIcon = Icons.Filled.Settings,
                         unselectedIcon = Icons.Outlined.Settings,
+                        indicatorColor = Color(0xfff94545),
                         hasNews = false
                     )
                 )
@@ -115,7 +123,6 @@ class MainActivity : ComponentActivity() {
                                     selected = selectedItemIndex == index,
                                     onClick = {
                                         selectedItemIndex = index
-
                                     },
                                     icon = {
                                         BadgedBox(
@@ -132,13 +139,18 @@ class MainActivity : ComponentActivity() {
                                                 contentDescription = item.title
                                             )
                                         }
-                                    }
+                                    },
+                                    colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
+                                        indicatorColor = item.indicatorColor, // Color of the selected indicator
+                                    ),
+                                    modifier = Modifier.padding(horizontal = 28.dp)
                                 )
                             }
+
                         }
                     }
                 ) { innerPadding ->
-                    ConentScreen(modifier = Modifier.padding(innerPadding), selectedItemIndex)
+                    ContentScreen(modifier = Modifier.padding(innerPadding), selectedItemIndex)
                 }
             }
         }
@@ -146,7 +158,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ConentScreen(modifier: Modifier = Modifier, selectedIndex : Int) {
+fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int) {
     when(selectedIndex){
         0 -> HomePage()
         1 -> CalendarPage()

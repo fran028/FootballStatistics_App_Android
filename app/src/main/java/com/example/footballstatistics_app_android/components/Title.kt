@@ -30,18 +30,18 @@ import com.example.footballstatistics_app_android.Theme.white
 
 @Composable
 fun ViewTitle(title: String, image: Int) {
-    Box( // Use a Box to layer elements
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .height(160.dp)
     ) {
         Image(
             painter = painterResource(id = image),
             contentDescription = "Background Image",
-            modifier = Modifier.fillMaxSize(), // Image fills the Box
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        Box( // This Box will contain the gradient and other content
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
@@ -49,13 +49,14 @@ fun ViewTitle(title: String, image: Int) {
                         colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.1f))
                     )
                 )
+                .height(150.dp)
         ) {
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween, // Use SpaceBetween for logo
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom,
                 modifier = Modifier
-                    .fillMaxSize() // Row fills the gradient Box
-                    .padding(horizontal = 32.dp, vertical = 64.dp) // Add padding for the content
+                    .fillMaxSize()
+                    .padding(horizontal = 32.dp, vertical = 32.dp)
             ) {
                 Text(
                     text = title,

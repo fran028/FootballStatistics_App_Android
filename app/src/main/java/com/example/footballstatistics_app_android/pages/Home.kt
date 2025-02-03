@@ -54,7 +54,7 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController, update
             fontSize = 32.sp,
             fontWeight = FontWeight.SemiBold,
             color = white,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(horizontal = 32.dp)
         )
         val myButtonItems = listOf(
             ButtonItem(1, "Match 1", {updateSelectedItemIndex(4)} , yellow, width = 500.dp, height = 60.dp),

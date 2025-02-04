@@ -27,7 +27,7 @@ fun DynamicButtonList(
     buttonItems: List<ButtonItem>,
 ) {
     LazyColumn(
-        modifier = Modifier.padding(vertical = 8.dp).padding(horizontal = 32.dp),
+        modifier = Modifier.padding(horizontal = 32.dp),
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
         items(buttonItems) { item ->
@@ -39,7 +39,6 @@ fun DynamicButtonList(
                 width = item.width,
                 height = item.height,
             )
-            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

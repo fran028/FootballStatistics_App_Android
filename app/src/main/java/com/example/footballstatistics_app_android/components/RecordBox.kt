@@ -24,7 +24,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.footballstatistics_app_android.Theme.RobotoCondensed
 import com.example.footballstatistics_app_android.Theme.black
+import com.example.footballstatistics_app_android.Theme.white
 
 @Composable
 fun RecordBox(
@@ -45,11 +47,9 @@ fun RecordBox(
     ) {
         Text(
             text = text,
-            style = TextStyle(
-                color = textcolor,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            ),
+            fontFamily = RobotoCondensed,
+            color = white,
+            fontSize = 18.sp,
             textAlign = TextAlign.Center,
 
         )
@@ -63,11 +63,9 @@ fun RecordBox(
         {
             Text(
                 text = value,
-                style = TextStyle(
-                    color = black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                fontFamily = RobotoCondensed,
+                color = black,
+                fontSize = 16.sp,
             )
         }
 

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,11 +23,16 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.footballstatistics_app_android.R
+import com.example.footballstatistics_app_android.Theme.LeagueGothic
 import com.example.footballstatistics_app_android.Theme.white
+
+
 
 @Composable
 fun ViewTitle(title: String, image: Int) {
@@ -46,7 +52,7 @@ fun ViewTitle(title: String, image: Int) {
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.1f))
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.25f))
                     )
                 )
                 .height(150.dp)
@@ -61,8 +67,8 @@ fun ViewTitle(title: String, image: Int) {
                 Text(
                     text = title,
                     style = TextStyle(
+                        fontFamily = LeagueGothic,
                         fontSize = 48.sp,
-                        fontWeight = FontWeight.SemiBold,
                         color = white,
                         shadow = Shadow(
                             color = Color.Black,

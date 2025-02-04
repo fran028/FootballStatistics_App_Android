@@ -1,11 +1,11 @@
-package com.example.footballstatistics_app_android
+package com.example.footballstatistics_app_android.Theme
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-
+/*
 data class AppColors(
 
     val black: Color = Color(0xff242424),
@@ -34,5 +34,5 @@ data class AppTheme(
     val colors: AppColors = AppColors(),
     val typography: AppTypography = AppTypography()
 )
-
+*/
 

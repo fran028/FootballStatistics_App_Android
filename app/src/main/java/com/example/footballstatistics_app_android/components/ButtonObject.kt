@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.footballstatistics_app_android.Theme.RobotoCondensed
 import com.example.footballstatistics_app_android.Theme.black
 import com.example.footballstatistics_app_android.Theme.white
 
@@ -56,9 +57,9 @@ fun ButtonObject(
         Text(
             text = text,
             style = TextStyle(
+                fontFamily = RobotoCondensed,
                 color = textcolor, // Text color
-                fontSize = 24.sp, // Text size
-                fontWeight = FontWeight.Bold, // Text weight
+                fontSize = 24.sp, // Text size // Text weight
             )
         )
     }

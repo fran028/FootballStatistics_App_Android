@@ -1,9 +1,7 @@
 package com.example.footballstatistics_app_android.pages
 
-import android.provider.ContactsContract.Profile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,31 +9,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.footballstatistics_app_android.AppTheme
 import com.example.footballstatistics_app_android.R
+import com.example.footballstatistics_app_android.Theme.LeagueGothic
+import com.example.footballstatistics_app_android.Theme.RobotoCondensed
 import com.example.footballstatistics_app_android.Theme.black
 import com.example.footballstatistics_app_android.Theme.blue
 import com.example.footballstatistics_app_android.Theme.green
 import com.example.footballstatistics_app_android.Theme.red
 import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
-import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.components.ColorBar
 import com.example.footballstatistics_app_android.components.RecordBox
 import com.example.footballstatistics_app_android.components.ViewTitle
@@ -53,41 +45,40 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController, upd
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        ViewTitle(title = "Profile", image = R.drawable.profile_img)
-        Spacer(modifier = Modifier.height(32.dp))
+        ViewTitle(title = "PROFILE", image = R.drawable.profile_img)
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "Franco Scarpettini ",
-            fontSize = 40.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontFamily = RobotoCondensed,
+            fontSize = 36.sp,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "25 Years",
+            fontFamily = RobotoCondensed,
             fontSize = 32.sp,
-            fontWeight = FontWeight.SemiBold,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
-        Spacer(modifier = Modifier.height(12.dp))
-        Row {
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.Start,
+            modifier = Modifier.padding(horizontal = 32.dp)) {
             Text(
                 text = "175cm ",
+                fontFamily = RobotoCondensed,
                 fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = white,
-                modifier = Modifier.padding(horizontal = 32.dp)
+                color = white
             )
             Text(
                 text = "60Kg ",
+                fontFamily = RobotoCondensed,
                 fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = white,
-                modifier = Modifier.padding(horizontal = 32.dp)
+                color = white
             )
         }
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 32.dp)) {
@@ -127,7 +118,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController, upd
                 height = 50.dp
             )
         }
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         Row(
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
@@ -137,8 +128,8 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController, upd
         ) {
             Text(
                 text = "PERSONAL RECORDS",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontFamily = LeagueGothic,
+                fontSize = 32.sp,
                 color = white,
                 modifier = Modifier
                     .weight(1f)
@@ -146,8 +137,8 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController, upd
             )
             Text(
                 text = "(In one match)",
+                fontFamily = RobotoCondensed,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
                 color = green,
                 modifier = Modifier.padding(horizontal = 0.dp)
             )
@@ -164,9 +155,9 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController, upd
                 RecordBox(
                     text = "TOP\n SPEED ",
                     value = "26 km/h",
-                    bgcolor = yellow,
+                    bgcolor = blue,
                     textcolor = white,
-                    height = 50.dp,
+                    height = 100.dp,
                     width = 100.dp
                 )
                 RecordBox(
@@ -174,19 +165,29 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController, upd
                     value = "7,3 km",
                     bgcolor = yellow,
                     textcolor = white,
-                    height = 50.dp,
+                    height = 100.dp,
                     width = 100.dp
                 )
                 RecordBox(
                     text = "MAX HEARTRATE ",
                     value = "190 bpm",
-                    bgcolor = yellow,
+                    bgcolor = red,
                     textcolor = white,
-                    height = 50.dp,
+                    height = 100.dp,
                     width = 100.dp
                 )
             }
         }
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "SETTINGS",
+            fontFamily = LeagueGothic,
+            fontSize = 32.sp,
+            color = white,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 32.dp)
+        )
     }
 }
 

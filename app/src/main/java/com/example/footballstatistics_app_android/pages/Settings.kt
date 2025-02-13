@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
@@ -18,6 +20,7 @@ import androidx.navigation.NavController
 //import com.example.footballstatistics_app_android.Theme.AppTheme
 import com.example.footballstatistics_app_android.R
 import com.example.footballstatistics_app_android.Theme.black
+import com.example.footballstatistics_app_android.Theme.red
 import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.components.ViewTitle
@@ -26,24 +29,23 @@ import com.example.footballstatistics_app_android.components.ViewTitle
 
 @Composable
 fun SettingPage(modifier: Modifier = Modifier, navController: NavController, updateSelectedItemIndex: (Int) -> Unit) {
+
     Column(
         modifier = Modifier
-            .fillMaxSize().background(black),
+            .fillMaxSize()
+            .background(black),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
         ViewTitle(title = "SETTINGS", image = R.drawable.setting_poster)
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("This is a sample screen layout.", color = white, fontSize = 18.sp)
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         ButtonObject(
-            onClick = { /* Handle button click */ },
-            text = "Click Me",
-            bgcolor = Color(0xff59834a),
-            textcolor = white,
-            width = 200.dp,
-            height = 50.dp
-
+            onClick = { },
+            text = "Settings",
+            bgcolor = red,
+            textcolor = black,
+            width = 500.dp,
+            height = 60.dp,
         )
     }
 }

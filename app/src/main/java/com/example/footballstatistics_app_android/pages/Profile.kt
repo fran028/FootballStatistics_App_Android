@@ -179,7 +179,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController, upd
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
-        Text(
+        /*Text(
             text = "SETTINGS",
             fontFamily = LeagueGothic,
             fontSize = 32.sp,
@@ -187,7 +187,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController, upd
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = 32.dp)
-        )
+        )*/
     }
 }
 

@@ -22,9 +22,12 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE id = :id")
     fun getUser(id: String): Flow<User>
 
-    @Query("SELECT * FROM users")
-    fun getAllUsers(): Flow<List<User>>
+    @Query("SELECT * FROM users WHERE username = :username")
+    fun getUserByUsername(username: String): User?
 
-    @Query("SELECT * FROM users WHERE username = :username AND password = :password")
+    @Query("SELECT * FROM users")
+    fun getUsers(): Flow<List<User>>
+
+    @Query("SELECT * FROM users WHERE password = :password and username = :username")
     fun loginUser(username: String, password: String): Flow<List<User>>
 }

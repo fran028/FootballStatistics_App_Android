@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -103,6 +104,16 @@ fun LoginPage(navController: NavController, updateSelectedItemIndex: (Int) -> Un
                 value = username,
                 onValueChange = { username = it },
                 //label = { Text("Username") },
+                placeholder = {
+                    Text(
+                        text = "Username",
+                        style = TextStyle(
+                            color = black,
+                            fontSize = 16.sp,
+                            fontFamily = RobotoCondensed
+                        )
+                    )
+                },
                 modifier = Modifier
                     .width(350.dp)
                     .height(50.dp)
@@ -113,6 +124,12 @@ fun LoginPage(navController: NavController, updateSelectedItemIndex: (Int) -> Un
                     fontFamily = RobotoCondensed,
                     fontSize = 18.sp,
                     color = black
+                ),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = white, // Background when not focused
+                    focusedContainerColor = white, // Background when focused
+                    unfocusedIndicatorColor = Color.Transparent, // Remove the underline when not focused
+                    focusedIndicatorColor = Color.Transparent // Remove the underline when focused
                 )
             )
             Spacer(modifier = Modifier.size(20.dp))
@@ -120,16 +137,34 @@ fun LoginPage(navController: NavController, updateSelectedItemIndex: (Int) -> Un
                 value = password,
                 onValueChange = { password = it },
                 //label = { Text("Password") },
+                placeholder = {
+                    Text(
+                        text = "Password",
+                        style = TextStyle(
+                            color = black,
+                            fontSize = 16.sp,
+                            fontFamily = RobotoCondensed
+                        )
+                    )
+                },
                 modifier = Modifier
                     .width(350.dp)
                     .height(50.dp)
-                    .padding(horizontal = 0.dp),
+                    .padding(horizontal = 0.dp)
+                    .border(2.dp, borderColor, RoundedCornerShape(8.dp)),
                 shape = RoundedCornerShape(8.dp),
                 textStyle = TextStyle(
                     fontFamily = RobotoCondensed,
                     fontSize = 18.sp,
                     color = black
+                ),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = white, // Background when not focused
+                    focusedContainerColor = white, // Background when focused
+                    unfocusedIndicatorColor = Color.Transparent, // Remove the underline when not focused
+                    focusedIndicatorColor = Color.Transparent // Remove the underline when focused
                 )
+
 
             )
             Spacer(modifier = Modifier.size(40.dp))

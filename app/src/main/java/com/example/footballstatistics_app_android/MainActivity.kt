@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.footballstatistics_app_android.pages.CalendarPage
 import com.example.footballstatistics_app_android.pages.HomePage
@@ -59,6 +60,8 @@ import com.example.footballstatistics_app_android.Theme.green
 import com.example.footballstatistics_app_android.Theme.red
 import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
+import com.example.footballstatistics_app_android.pages.LoginPage
+import com.example.footballstatistics_app_android.pages.RegisterPage
 
 data class BottomNavigationItem(
     val title: String,
@@ -77,15 +80,29 @@ class MainActivity : ComponentActivity() {
         setContent {
             FootballStatistics_App_AndroidTheme {
                 val navController = rememberNavController()
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
                 var selectedItemIndex by rememberSaveable {
-                    mutableStateOf(0)
+                    mutableStateOf(5)
                 }
 
                 // Function to update selectedItemIndex
                 val updateSelectedItemIndex: (Int) -> Unit = { newIndex ->
                     selectedItemIndex = newIndex
                 }
-                NavHost(navController = navController, startDestination = Screen.Home.route) {
+                NavHost(navController = navController, startDestination = Screen.Login.route) {
+                    composable(Screen.Login.route) {
+                        LoginPage(
+                            navController = navController,
+                            updateSelectedItemIndex = updateSelectedItemIndex
+                        )
+                    }
+                    composable(Screen.Register.route) {
+                        RegisterPage(
+                            navController = navController,
+                            updateSelectedItemIndex = updateSelectedItemIndex
+                        )
+                    }
                     composable(Screen.Home.route) {
                         HomePage(
                             navController = navController,
@@ -156,55 +173,57 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
-                        NavigationBar(containerColor = white) {
-                            items.forEachIndexed { index, item ->
-                                NavigationBarItem(
-                                    selected = selectedItemIndex == index,
-                                    onClick = {
-                                        selectedItemIndex = index
-                                    },
-                                    icon = {
-                                        BadgedBox(
-                                            badge = {
-                                                if (item.hasNews) {
-                                                    Badge()
+                        if (selectedItemIndex != 5 && selectedItemIndex != 6) {
+                            NavigationBar(containerColor = white) {
+                                items.forEachIndexed { index, item ->
+                                    NavigationBarItem(
+                                        selected = selectedItemIndex == index,
+                                        onClick = {
+                                            selectedItemIndex = index
+                                        },
+                                        icon = {
+                                            BadgedBox(
+                                                badge = {
+                                                    if (item.hasNews) {
+                                                        Badge()
+                                                    }
                                                 }
-                                            }
-                                        ) {
-                                            Icon(
-                                                imageVector = if (index == selectedItemIndex) {
-                                                    item.selectedIcon
-                                                } else item.unselectedIcon,
-                                                contentDescription = item.title
-                                            )
-                                        }
-                                    },
-                                    colors = NavigationBarItemDefaults.colors(
-                                        indicatorColor = Color.Transparent, // Remove the default indicator
-                                    ),
-                                    modifier = Modifier
-                                        .padding(horizontal = 28.dp)
-                                        .drawBehind {
-                                            if (selectedItemIndex == index) {
-                                                drawRoundRect(
-                                                    color = item.indicatorColor,
-                                                    cornerRadius = CornerRadius(
-                                                        8.dp.toPx()
-                                                    ),
-                                                    size = Size(
-                                                        width = this.size.width,
-                                                        height = 60.dp.toPx()
-                                                    ),
-                                                    topLeft = Offset(
-                                                        x = 0f,
-                                                        y = (this.size.height - 60.dp.toPx()) / 2
-                                                    )
+                                            ) {
+                                                Icon(
+                                                    imageVector = if (index == selectedItemIndex) {
+                                                        item.selectedIcon
+                                                    } else item.unselectedIcon,
+                                                    contentDescription = item.title
                                                 )
                                             }
-                                        }
-                                )
-                            }
+                                        },
+                                        colors = NavigationBarItemDefaults.colors(
+                                            indicatorColor = Color.Transparent, // Remove the default indicator
+                                        ),
+                                        modifier = Modifier
+                                            .padding(horizontal = 28.dp)
+                                            .drawBehind {
+                                                if (selectedItemIndex == index) {
+                                                    drawRoundRect(
+                                                        color = item.indicatorColor,
+                                                        cornerRadius = CornerRadius(
+                                                            8.dp.toPx()
+                                                        ),
+                                                        size = Size(
+                                                            width = this.size.width,
+                                                            height = 60.dp.toPx()
+                                                        ),
+                                                        topLeft = Offset(
+                                                            x = 0f,
+                                                            y = (this.size.height - 60.dp.toPx()) / 2
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                    )
+                                }
 
+                            }
                         }
                     }
                 ) { innerPadding ->
@@ -223,6 +242,8 @@ fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int, updateSele
         2 -> ProfilePage(navController = navController, updateSelectedItemIndex = updateSelectedItemIndex)
         3 -> SettingPage(navController = navController, updateSelectedItemIndex = updateSelectedItemIndex)
         4 -> MatchPage(navController = navController, updateSelectedItemIndex = updateSelectedItemIndex)
+        5 -> LoginPage(navController= navController, updateSelectedItemIndex = updateSelectedItemIndex)
+        6 -> RegisterPage(navController= navController, updateSelectedItemIndex = updateSelectedItemIndex)
     }
 }
 

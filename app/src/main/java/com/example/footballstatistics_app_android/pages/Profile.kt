@@ -28,6 +28,7 @@ import com.example.footballstatistics_app_android.Theme.green
 import com.example.footballstatistics_app_android.Theme.red
 import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
+import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.components.ColorBar
 import com.example.footballstatistics_app_android.components.RecordBox
 import com.example.footballstatistics_app_android.components.ViewTitle
@@ -179,15 +180,29 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController, upd
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
-        /*Text(
+        Text(
             text = "SETTINGS",
             fontFamily = LeagueGothic,
             fontSize = 32.sp,
             color = white,
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 32.dp)
-        )*/
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+        Spacer(modifier = Modifier.height(5.dp))
+        Column (modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp)){
+            ButtonObject(
+                text = "Logout",
+                bgcolor = red,
+                textcolor = black,
+                width = 500.dp,
+                height = 60.dp,
+                onClick = {
+                    updateSelectedItemIndex(5)
+                }
+            )
+        }
+        Spacer(modifier = Modifier.height(80.dp))
     }
 }
 

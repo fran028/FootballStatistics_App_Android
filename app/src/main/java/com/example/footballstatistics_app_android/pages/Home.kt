@@ -38,6 +38,7 @@ import com.example.footballstatistics_app_android.Screen
 import com.example.footballstatistics_app_android.Theme.LeagueGothic
 import com.example.footballstatistics_app_android.Theme.RobotoCondensed
 import com.example.footballstatistics_app_android.Theme.black
+import com.example.footballstatistics_app_android.Theme.blue
 import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.components.ButtonItem
@@ -47,12 +48,12 @@ import com.example.footballstatistics_app_android.components.ViewTitle
 
 @Composable
 fun HomePage(modifier: Modifier = Modifier, navController: NavController, updateSelectedItemIndex: (Int) -> Unit) {
-    //val scrollState = rememberScrollState()
+    val scrollState = rememberScrollState()
     Column(
-
         modifier = Modifier
             .fillMaxSize()
-            .background(black),
+            .background(black)
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
@@ -103,17 +104,29 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController, update
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
-        val myButtonItems = listOf(
-            ButtonItem(1, "Match 1", {updateSelectedItemIndex(4)} , yellow, width = 500.dp, height = 60.dp),
-            ButtonItem(1, "Match 2", {updateSelectedItemIndex(4)} , yellow, width = 500.dp, height = 60.dp),
-            ButtonItem(1, "Match 3", {updateSelectedItemIndex(4)} , yellow, width = 500.dp, height = 60.dp),
-            ButtonItem(1, "Match 4", {updateSelectedItemIndex(4)} , yellow, width = 500.dp, height = 60.dp),
-            ButtonItem(1, "Match 5", {updateSelectedItemIndex(4)} , yellow, width = 500.dp, height = 60.dp),
 
+        for (i in 1..5) {
+            ButtonObject(
+                text = "Match $i",
+                onClick = {navController.navigate(Screen.Match.route)},
+                bgcolor = yellow,
+                width = 500.dp,
+                height = 60.dp,
+                textcolor = black,
             )
-        //Column(modifier = Modifier.verticalScroll(scrollState)) {
-            DynamicButtonList(buttonItems = myButtonItems)
-        //}
+        }
+
+//        val myButtonItems = listOf(
+//            ButtonItem(1, "Match 1", {navController.navigate(Screen.Match.route)} , yellow, width = 500.dp, height = 60.dp),
+//            ButtonItem(1, "Match 2", {navController.navigate(Screen.Match.route)} , yellow, width = 500.dp, height = 60.dp),
+//            ButtonItem(1, "Match 3", {navController.navigate(Screen.Match.route)} , yellow, width = 500.dp, height = 60.dp),
+//            ButtonItem(1, "Match 4", {navController.navigate(Screen.Match.route)} , yellow, width = 500.dp, height = 60.dp),
+//            ButtonItem(1, "Match 5", {navController.navigate(Screen.Match.route)} , yellow, width = 500.dp, height = 60.dp),
+//
+//            )
+//        //Column(modifier = Modifier.verticalScroll(scrollState)) {
+//            DynamicButtonList(buttonItems = myButtonItems)
+//        //}
 
     }
 }

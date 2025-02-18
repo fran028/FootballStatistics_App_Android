@@ -8,11 +8,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -26,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
+import com.example.footballstatistics_app_android.Screen
 import com.example.footballstatistics_app_android.Theme.LeagueGothic
 import com.example.footballstatistics_app_android.Theme.RobotoCondensed
 import com.example.footballstatistics_app_android.Theme.black
@@ -53,9 +59,13 @@ import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.data.AppDatabase
+import com.example.footballstatistics_app_android.data.User
+import com.example.footballstatistics_app_android.data.UserRepository
 import com.example.footballstatistics_app_android.viewmodel.LoginResult
 import com.example.footballstatistics_app_android.viewmodel.LoginViewModel
 import com.example.footballstatistics_app_android.viewmodel.LoginViewModelFactory
+import com.example.footballstatistics_app_android.viewmodel.UserViewModel
+import com.example.footballstatistics_app_android.viewmodel.UserViewModelFactory
 
 @Composable
 fun LoginPage(navController: NavController, updateSelectedItemIndex: (Int) -> Unit) {
@@ -65,13 +75,22 @@ fun LoginPage(navController: NavController, updateSelectedItemIndex: (Int) -> Un
     val userDao = database.userDao()
     val loginViewModel: LoginViewModel = viewModel(factory = LoginViewModelFactory(userDao))
 
+
+    val userRepository = UserRepository(database.userDao())
+    val viewModelFactory = UserViewModelFactory(userRepository)
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory)
+
     val loginResult by loginViewModel.loginResult.collectAsState()
 
     var borderColor by remember { mutableStateOf(white) }
 
-    var username by remember { mutableStateOf("Username") }
-    var password by remember { mutableStateOf("Password") }
-    Box(modifier = Modifier.fillMaxSize()) {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
         Image(
             painter = painterResource(id = R.drawable.login_img), // Replace with your image
             contentDescription = "Background Image",
@@ -84,7 +103,7 @@ fun LoginPage(navController: NavController, updateSelectedItemIndex: (Int) -> Un
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.size(150.dp))
+            Spacer(modifier = Modifier.size(125.dp))
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "App Logo",
@@ -170,7 +189,9 @@ fun LoginPage(navController: NavController, updateSelectedItemIndex: (Int) -> Un
             Spacer(modifier = Modifier.size(40.dp))
             ButtonObject(
                 text = "LOGIN",
-                onClick = { loginViewModel.login(username, password) },
+                onClick = {
+                    loginViewModel.login(username, password)
+                          },
                 bgcolor = green,
                 width = 360.dp,
                 height = 60.dp,
@@ -179,7 +200,10 @@ fun LoginPage(navController: NavController, updateSelectedItemIndex: (Int) -> Un
             Spacer(modifier = Modifier.size(10.dp))
             ButtonObject(
                 text = "REGISTER",
-                onClick = { updateSelectedItemIndex(6) },
+                onClick = {
+                    //updateSelectedItemIndex(6)
+                    navController.navigate(Screen.Register.route)
+                },
                 bgcolor = blue,
                 width = 360.dp,
                 height = 60.dp,
@@ -190,7 +214,14 @@ fun LoginPage(navController: NavController, updateSelectedItemIndex: (Int) -> Un
             is LoginResult.Initial -> {}
             is LoginResult.Success -> {
                 LaunchedEffect(Unit) {
-                    updateSelectedItemIndex(0)
+                    //updateSelectedItemIndex(0)
+                    val user: User? = userViewModel.getUserByUsername()
+                    if (user != null) {
+                        userViewModel.updateLoginStatus(user.id)
+                    }
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
                 }
             }
 

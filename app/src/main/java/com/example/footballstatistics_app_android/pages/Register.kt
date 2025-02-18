@@ -10,13 +10,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -59,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
+import com.example.footballstatistics_app_android.Screen
 import com.example.footballstatistics_app_android.Theme.LeagueGothic
 import com.example.footballstatistics_app_android.Theme.RobotoCondensed
 import com.example.footballstatistics_app_android.Theme.black
@@ -103,7 +108,8 @@ fun RegisterPage(navController: NavController, updateSelectedItemIndex: (Int) ->
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory)
     val coroutineScope = rememberCoroutineScope()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize() ) {
         Image(
             painter = painterResource(id = R.drawable.register_img), // Replace with your image
             contentDescription = "Background Image",
@@ -116,7 +122,7 @@ fun RegisterPage(navController: NavController, updateSelectedItemIndex: (Int) ->
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.size(150.dp))
+            Spacer(modifier = Modifier.size(125.dp))
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "App Logo",
@@ -422,7 +428,7 @@ fun RegisterPage(navController: NavController, updateSelectedItemIndex: (Int) ->
             Spacer(modifier = Modifier.size(10.dp))
             ButtonObject(
                 text = "BACK TO LOGIN",
-                onClick = { updateSelectedItemIndex(5) },
+                onClick = { navController.navigate(Screen.Login.route)  },
                 bgcolor = yellow,
                 width = 360.dp,
                 height = 60.dp,

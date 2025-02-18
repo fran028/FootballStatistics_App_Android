@@ -5,21 +5,28 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
+import com.example.footballstatistics_app_android.Screen
 import com.example.footballstatistics_app_android.Theme.LeagueGothic
 import com.example.footballstatistics_app_android.Theme.RobotoCondensed
 import com.example.footballstatistics_app_android.Theme.black
@@ -32,17 +39,28 @@ import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.components.ColorBar
 import com.example.footballstatistics_app_android.components.RecordBox
 import com.example.footballstatistics_app_android.components.ViewTitle
+import com.example.footballstatistics_app_android.data.AppDatabase
+import com.example.footballstatistics_app_android.data.User
+import com.example.footballstatistics_app_android.data.UserRepository
+import com.example.footballstatistics_app_android.viewmodel.UserViewModel
+import com.example.footballstatistics_app_android.viewmodel.UserViewModelFactory
 
 //val LocalAppTheme = compositionLocalOf { AppTheme() }
 
 @Composable
 fun ProfilePage(modifier: Modifier = Modifier, navController: NavController, updateSelectedItemIndex: (Int) -> Unit) {
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val appDatabase = AppDatabase.getDatabase(context)
+    val userRepository = UserRepository(appDatabase.userDao())
+    val viewModelFactory = UserViewModelFactory(userRepository)
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory)
+    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(black)
-            .verticalScroll(scrollState),
+            .verticalScroll(scrollState) ,
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
@@ -198,7 +216,15 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController, upd
                 width = 500.dp,
                 height = 60.dp,
                 onClick = {
-                    updateSelectedItemIndex(5)
+                    //updateSelectedItemIndex(5)
+                    val user: User? = userViewModel.getLoginUser()
+                    if (user != null) {
+                        userViewModel.updateLoginStatus(user.id)
+                    }
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }

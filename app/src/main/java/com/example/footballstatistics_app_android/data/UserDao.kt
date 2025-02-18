@@ -23,11 +23,17 @@ interface UserDao {
     fun getUser(id: String): Flow<User>
 
     @Query("SELECT * FROM users WHERE username = :username")
-    fun getUserByUsername(username: String): User?
+    suspend fun getUserByUsername(username: String): User?
 
     @Query("SELECT * FROM users")
     fun getUsers(): Flow<List<User>>
 
     @Query("SELECT * FROM users WHERE password = :password and username = :username")
     fun loginUser(username: String, password: String): Flow<List<User>>
+
+    @Query("UPDATE users SET isLoggedIn = 1 WHERE id = :userId")
+    suspend fun updateLoginStatus(userId: String)
+
+    @Query("SELECT * FROM users WHERE isLoggedIn = True")
+    fun getLoginUser(): User?
 }

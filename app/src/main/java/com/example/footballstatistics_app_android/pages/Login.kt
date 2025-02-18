@@ -1,26 +1,18 @@
 package com.example.footballstatistics_app_android.pages
 
-import android.widget.Toast
+
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.InputChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -30,33 +22,27 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
 import com.example.footballstatistics_app_android.Screen
-import com.example.footballstatistics_app_android.Theme.LeagueGothic
-import com.example.footballstatistics_app_android.Theme.RobotoCondensed
-import com.example.footballstatistics_app_android.Theme.black
-import com.example.footballstatistics_app_android.Theme.blue
-import com.example.footballstatistics_app_android.Theme.green
-import com.example.footballstatistics_app_android.Theme.red
-import com.example.footballstatistics_app_android.Theme.white
-import com.example.footballstatistics_app_android.Theme.yellow
+import com.example.footballstatistics_app_android.theme.LeagueGothic
+import com.example.footballstatistics_app_android.theme.RobotoCondensed
+import com.example.footballstatistics_app_android.theme.black
+import com.example.footballstatistics_app_android.theme.blue
+import com.example.footballstatistics_app_android.theme.green
+import com.example.footballstatistics_app_android.theme.red
+import com.example.footballstatistics_app_android.theme.white
 import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.data.AppDatabase
 import com.example.footballstatistics_app_android.data.User
@@ -68,7 +54,7 @@ import com.example.footballstatistics_app_android.viewmodel.UserViewModel
 import com.example.footballstatistics_app_android.viewmodel.UserViewModelFactory
 
 @Composable
-fun LoginPage(navController: NavController, updateSelectedItemIndex: (Int) -> Unit) {
+fun LoginPage(navController: NavController) {
 
     val context = LocalContext.current
     val database = AppDatabase.getDatabase(context)
@@ -201,7 +187,6 @@ fun LoginPage(navController: NavController, updateSelectedItemIndex: (Int) -> Un
             ButtonObject(
                 text = "REGISTER",
                 onClick = {
-                    //updateSelectedItemIndex(6)
                     navController.navigate(Screen.Register.route)
                 },
                 bgcolor = blue,

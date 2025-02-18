@@ -1,44 +1,32 @@
 package com.example.footballstatistics_app_android.pages
 
 import android.widget.Toast
-import androidx.activity.result.launch
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,14 +35,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -64,13 +49,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
 import com.example.footballstatistics_app_android.Screen
-import com.example.footballstatistics_app_android.Theme.LeagueGothic
-import com.example.footballstatistics_app_android.Theme.RobotoCondensed
-import com.example.footballstatistics_app_android.Theme.black
-import com.example.footballstatistics_app_android.Theme.blue
-import com.example.footballstatistics_app_android.Theme.green
-import com.example.footballstatistics_app_android.Theme.white
-import com.example.footballstatistics_app_android.Theme.yellow
+import com.example.footballstatistics_app_android.theme.LeagueGothic
+import com.example.footballstatistics_app_android.theme.RobotoCondensed
+import com.example.footballstatistics_app_android.theme.black
+import com.example.footballstatistics_app_android.theme.blue
+import com.example.footballstatistics_app_android.theme.white
+import com.example.footballstatistics_app_android.theme.yellow
 import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.data.AppDatabase
 import com.example.footballstatistics_app_android.data.User
@@ -81,16 +65,14 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.text.format
 import kotlin.text.isNotBlank
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterPage(navController: NavController, updateSelectedItemIndex: (Int) -> Unit){
+fun RegisterPage(navController: NavController){
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
-    var height by remember { mutableStateOf(0) }
     var heightString by remember { mutableStateOf("") }
 
      val datePickerState = rememberDatePickerState(
@@ -279,7 +261,7 @@ fun RegisterPage(navController: NavController, updateSelectedItemIndex: (Int) ->
                         .size(width = 60.dp, height = 60.dp),  // Add border
                     shape = RoundedCornerShape(8.dp),  // Rounded corners
                     colors = ButtonDefaults.buttonColors(  // Custom colors
-                        containerColor = white,
+                        containerColor = blue,
                         contentColor = black
                     ),
                     elevation = ButtonDefaults.buttonElevation(
@@ -290,7 +272,7 @@ fun RegisterPage(navController: NavController, updateSelectedItemIndex: (Int) ->
                     Icon(
                         imageVector = Icons.Filled.DateRange,
                         contentDescription = "Calendar Icon",
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.size(width = 50.dp, height = 50.dp)
                     )
                 }
             }
@@ -359,11 +341,6 @@ fun RegisterPage(navController: NavController, updateSelectedItemIndex: (Int) ->
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        height = heightString.toInt()
-                    }
                 )
             )
             Spacer(modifier = Modifier.size(40.dp))
@@ -412,7 +389,7 @@ fun RegisterPage(navController: NavController, updateSelectedItemIndex: (Int) ->
                                 fullName = ""
                                 formattedDate = ""
                                 heightString = ""
-                                updateSelectedItemIndex(5)
+                                navController.navigate(Screen.Login.route)
                             }
                         }
                     } else {

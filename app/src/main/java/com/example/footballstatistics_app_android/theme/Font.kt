@@ -1,6 +1,5 @@
-package com.example.footballstatistics_app_android.Theme
+package com.example.footballstatistics_app_android.theme
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font
@@ -20,7 +19,7 @@ val fontFamily = FontFamily(
     Font(
         googleFont = fontName,
         fontProvider = provider,
-        weight = androidx.compose.ui.text.font.FontWeight.Normal
+        weight = FontWeight.Normal
 
     )
 )

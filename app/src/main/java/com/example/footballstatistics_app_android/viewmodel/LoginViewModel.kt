@@ -1,6 +1,6 @@
 package com.example.footballstatistics_app_android.viewmodel
 
-import androidx.activity.result.launch
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.footballstatistics_app_android.data.User
@@ -29,7 +29,7 @@ class LoginViewModel(private val userDao: UserDao) : ViewModel() {
 }
 
 sealed class LoginResult {
-    object Initial : LoginResult()
+    data object Initial : LoginResult()
     data class Success(val user: User) : LoginResult()
     data class Error(val message: String) : LoginResult()
 }

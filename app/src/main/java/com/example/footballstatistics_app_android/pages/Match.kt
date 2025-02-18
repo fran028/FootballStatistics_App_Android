@@ -7,13 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -27,22 +24,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
-import com.example.footballstatistics_app_android.Theme.LeagueGothic
-import com.example.footballstatistics_app_android.Theme.RobotoCondensed
-import com.example.footballstatistics_app_android.Theme.black
-import com.example.footballstatistics_app_android.Theme.blue
-import com.example.footballstatistics_app_android.Theme.green
-import com.example.footballstatistics_app_android.Theme.red
-import com.example.footballstatistics_app_android.Theme.white
-import com.example.footballstatistics_app_android.Theme.yellow
-import com.example.footballstatistics_app_android.components.ButtonObject
+import com.example.footballstatistics_app_android.theme.LeagueGothic
+import com.example.footballstatistics_app_android.theme.RobotoCondensed
+import com.example.footballstatistics_app_android.theme.black
+import com.example.footballstatistics_app_android.theme.blue
+import com.example.footballstatistics_app_android.theme.green
+import com.example.footballstatistics_app_android.theme.red
+import com.example.footballstatistics_app_android.theme.white
+import com.example.footballstatistics_app_android.theme.yellow
 import com.example.footballstatistics_app_android.components.ColorBar
-import com.example.footballstatistics_app_android.components.RecordBox
 import com.example.footballstatistics_app_android.components.StatBox
 import com.example.footballstatistics_app_android.components.ViewTitle
 
 @Composable
-fun MatchPage(modifier: Modifier = Modifier, navController: NavController, updateSelectedItemIndex: (Int) -> Unit) {
+fun MatchPage(modifier: Modifier = Modifier, navController: NavController) {
     val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
@@ -121,7 +116,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, updat
                 modifier = Modifier.fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
                     .background(Color.Transparent)
-                    .border(width = 4.dp, color = white, shape = RoundedCornerShape(8.dp), )
+                    .border(width = 4.dp, color = white, shape = RoundedCornerShape(8.dp) )
                     .height(125.dp),
                 contentAlignment = Alignment.Center
             ) {

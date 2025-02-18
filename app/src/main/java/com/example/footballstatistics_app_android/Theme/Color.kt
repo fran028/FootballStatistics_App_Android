@@ -1,4 +1,4 @@
-package com.example.footballstatistics_app_android.theme
+package com.example.footballstatistics_app_android.Theme
 
 import androidx.compose.ui.graphics.Color
 

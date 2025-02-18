@@ -13,7 +13,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.footballstatistics_app_android.theme.RobotoCondensed
+import com.example.footballstatistics_app_android.Theme.RobotoCondensed
 
 
 @Composable

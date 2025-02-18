@@ -1,5 +1,6 @@
 package com.example.footballstatistics_app_android.pages
 
+import android.widget.Space
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,8 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
@@ -49,12 +49,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
 import com.example.footballstatistics_app_android.Screen
-import com.example.footballstatistics_app_android.theme.LeagueGothic
-import com.example.footballstatistics_app_android.theme.RobotoCondensed
-import com.example.footballstatistics_app_android.theme.black
-import com.example.footballstatistics_app_android.theme.blue
-import com.example.footballstatistics_app_android.theme.white
-import com.example.footballstatistics_app_android.theme.yellow
+import com.example.footballstatistics_app_android.Theme.LeagueGothic
+import com.example.footballstatistics_app_android.Theme.RobotoCondensed
+import com.example.footballstatistics_app_android.Theme.black
+import com.example.footballstatistics_app_android.Theme.blue
+import com.example.footballstatistics_app_android.Theme.white
+import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.data.AppDatabase
 import com.example.footballstatistics_app_android.data.User
@@ -220,7 +220,8 @@ fun RegisterPage(navController: NavController){
             )
             Spacer(modifier = Modifier.size(20.dp))
             Row (
-                modifier = Modifier.width(350.dp),
+                modifier = Modifier.width(350.dp)
+                    .height(60.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically) {
                 TextField(
@@ -239,7 +240,7 @@ fun RegisterPage(navController: NavController){
                         )
                     },
                     modifier = Modifier
-                        .width(280.dp)
+                        .width(260.dp)
                         .height(60.dp),
                     shape = RoundedCornerShape(8.dp),
                     textStyle = TextStyle(
@@ -255,12 +256,13 @@ fun RegisterPage(navController: NavController){
                         focusedIndicatorColor = Color.Transparent // Remove the underline when focused
                     )
                 )
+                Spacer(modifier = Modifier.size(10.dp))
                 Button(
                     onClick = { showDatePickerDialog = true },
                     modifier = Modifier
-                        .size(width = 60.dp, height = 60.dp),  // Add border
-                    shape = RoundedCornerShape(8.dp),  // Rounded corners
-                    colors = ButtonDefaults.buttonColors(  // Custom colors
+                        .fillMaxSize().padding(0.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = blue,
                         contentColor = black
                     ),
@@ -270,9 +272,9 @@ fun RegisterPage(navController: NavController){
                     ),
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.DateRange,
+                        painter = painterResource(id = R.drawable.calendar),
                         contentDescription = "Calendar Icon",
-                        modifier = Modifier.size(width = 50.dp, height = 50.dp)
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }

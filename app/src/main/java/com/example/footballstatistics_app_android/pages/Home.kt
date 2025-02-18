@@ -24,11 +24,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
 import com.example.footballstatistics_app_android.Screen
-import com.example.footballstatistics_app_android.theme.LeagueGothic
-import com.example.footballstatistics_app_android.theme.RobotoCondensed
-import com.example.footballstatistics_app_android.theme.black
-import com.example.footballstatistics_app_android.theme.white
-import com.example.footballstatistics_app_android.theme.yellow
+import com.example.footballstatistics_app_android.Theme.LeagueGothic
+import com.example.footballstatistics_app_android.Theme.RobotoCondensed
+import com.example.footballstatistics_app_android.Theme.black
+import com.example.footballstatistics_app_android.Theme.white
+import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.components.ViewTitle
 

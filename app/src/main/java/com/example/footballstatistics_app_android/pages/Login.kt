@@ -22,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,13 +37,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
 import com.example.footballstatistics_app_android.Screen
-import com.example.footballstatistics_app_android.theme.LeagueGothic
-import com.example.footballstatistics_app_android.theme.RobotoCondensed
-import com.example.footballstatistics_app_android.theme.black
-import com.example.footballstatistics_app_android.theme.blue
-import com.example.footballstatistics_app_android.theme.green
-import com.example.footballstatistics_app_android.theme.red
-import com.example.footballstatistics_app_android.theme.white
+import com.example.footballstatistics_app_android.Theme.LeagueGothic
+import com.example.footballstatistics_app_android.Theme.RobotoCondensed
+import com.example.footballstatistics_app_android.Theme.black
+import com.example.footballstatistics_app_android.Theme.blue
+import com.example.footballstatistics_app_android.Theme.green
+import com.example.footballstatistics_app_android.Theme.red
+import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.data.AppDatabase
 import com.example.footballstatistics_app_android.data.User
@@ -52,6 +53,7 @@ import com.example.footballstatistics_app_android.viewmodel.LoginViewModel
 import com.example.footballstatistics_app_android.viewmodel.LoginViewModelFactory
 import com.example.footballstatistics_app_android.viewmodel.UserViewModel
 import com.example.footballstatistics_app_android.viewmodel.UserViewModelFactory
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginPage(navController: NavController) {
@@ -65,6 +67,7 @@ fun LoginPage(navController: NavController) {
     val userRepository = UserRepository(database.userDao())
     val viewModelFactory = UserViewModelFactory(userRepository)
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory)
+    val coroutineScope = rememberCoroutineScope()
 
     val loginResult by loginViewModel.loginResult.collectAsState()
 
@@ -72,6 +75,8 @@ fun LoginPage(navController: NavController) {
 
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    var isError by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -172,11 +177,20 @@ fun LoginPage(navController: NavController) {
 
 
             )
+            if(isError){
+                Text(
+                    text = "Invalid username or password",
+                    color = Color.Red,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
             Spacer(modifier = Modifier.size(40.dp))
             ButtonObject(
                 text = "LOGIN",
                 onClick = {
-                    loginViewModel.login(username, password)
+                            coroutineScope.launch {
+                                loginViewModel.login(username, password)
+                            }
                           },
                 bgcolor = green,
                 width = 360.dp,
@@ -198,14 +212,17 @@ fun LoginPage(navController: NavController) {
         when (loginResult) {
             is LoginResult.Initial -> {}
             is LoginResult.Success -> {
+                borderColor = white
+                isError = false
                 LaunchedEffect(Unit) {
-                    //updateSelectedItemIndex(0)
-                    val user: User? = userViewModel.getUserByUsername()
-                    if (user != null) {
-                        userViewModel.updateLoginStatus(user.id)
-                    }
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+                    coroutineScope.launch {
+                        val user: User? = userViewModel.getUserByUsername(username)
+                        if (user != null) {
+                            userViewModel.updateLoginStatus(user.id)
+                        }
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
                     }
                 }
             }
@@ -213,6 +230,7 @@ fun LoginPage(navController: NavController) {
             is LoginResult.Error -> {
                // Toast.makeText(context, loginResult.message, Toast.LENGTH_SHORT).show()
                 borderColor = red
+                isError = true
             }
         }
     }

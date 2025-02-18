@@ -24,8 +24,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.footballstatistics_app_android.R
-import com.example.footballstatistics_app_android.theme.LeagueGothic
-import com.example.footballstatistics_app_android.theme.white
+import com.example.footballstatistics_app_android.Theme.LeagueGothic
+import com.example.footballstatistics_app_android.Theme.white
 
 
 

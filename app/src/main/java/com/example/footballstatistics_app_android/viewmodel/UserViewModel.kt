@@ -38,8 +38,10 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         return userRepository.getLoginUser()
     }
 
-    fun getUserByUsername(): User?{
-        return userRepository.getLoginUser()
-
+    suspend fun getUserByUsername(username: String): User? {
+        return withContext(Dispatchers.IO) {
+            userRepository.getUserByUsername(username)
+        }
     }
+
 }

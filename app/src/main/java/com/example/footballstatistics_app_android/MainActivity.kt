@@ -5,8 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
@@ -31,6 +33,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -44,18 +47,18 @@ import com.example.footballstatistics_app_android.pages.HomePage
 import com.example.footballstatistics_app_android.pages.MatchPage
 import com.example.footballstatistics_app_android.pages.ProfilePage
 import com.example.footballstatistics_app_android.ui.theme.FootballStatistics_App_AndroidTheme
-import com.example.footballstatistics_app_android.theme.blue
-import com.example.footballstatistics_app_android.theme.green
-import com.example.footballstatistics_app_android.theme.white
-import com.example.footballstatistics_app_android.theme.yellow
+import com.example.footballstatistics_app_android.Theme.green
+import com.example.footballstatistics_app_android.Theme.white
+import com.example.footballstatistics_app_android.Theme.yellow
+import com.example.footballstatistics_app_android.Theme.blue
 import com.example.footballstatistics_app_android.pages.LoginPage
 import com.example.footballstatistics_app_android.pages.RegisterPage
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 data class BottomNavigationItem(
     val title: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
+    val selectedIcon: Int,
+    val unselectedIcon: Int,
     val hasNews: Boolean,
     val indicatorColor: Color,
     val route: String
@@ -94,24 +97,24 @@ fun MainScreen(){
     val items = listOf(
         BottomNavigationItem(
             title = "Home",
-            selectedIcon = Icons.Filled.Home,
-            unselectedIcon = Icons.Outlined.Home,
+            selectedIcon = R.drawable.home,
+            unselectedIcon = R.drawable.home,
             indicatorColor = yellow,
             hasNews = false,
             route = Screen.Home.route
         ),
         BottomNavigationItem(
             title = "Calendar",
-            selectedIcon = Icons.Filled.DateRange,
-            unselectedIcon = Icons.Outlined.DateRange,
+            selectedIcon = R.drawable.calendar,
+            unselectedIcon = R.drawable.calendar,
             indicatorColor = blue,
             hasNews = false,
             route = Screen.Calendar.route
         ),
         BottomNavigationItem(
             title = "Profile",
-            selectedIcon = Icons.Filled.Person,
-            unselectedIcon = Icons.Outlined.Person,
+            selectedIcon = R.drawable.shirt,
+            unselectedIcon = R.drawable.shirt,
             indicatorColor = green,
             hasNews = false,
             route = Screen.Profile.route
@@ -149,15 +152,18 @@ fun MainScreen(){
                                     }
                                 ) {
                                     Icon(
-                                        imageVector = if (currentDestination?.hierarchy?.any { it.route == item.route } == true) {
-                                            item.selectedIcon
-                                        } else item.unselectedIcon,
-                                        contentDescription = item.title
+                                        painter = if (currentDestination?.hierarchy?.any { it.route == item.route } == true) {
+                                            painterResource(id = item.selectedIcon)
+                                        } else painterResource(id = item.unselectedIcon),
+                                        contentDescription = item.title,
+                                        modifier = Modifier.size(40.dp)
                                     )
                                 }
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 indicatorColor = Color.Transparent, // Remove the default indicator
+                                selectedIconColor = Color.Black,
+                                unselectedIconColor = Color.Black
                             ),
                             modifier = Modifier
                                 .padding(horizontal = 28.dp)
@@ -185,7 +191,8 @@ fun MainScreen(){
                 }
 
             }
-        }
+        },
+        contentWindowInsets = WindowInsets(0,0,0,0)
     )
     { innerPadding ->
         NavHost(

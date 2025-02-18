@@ -5,23 +5,34 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.footballstatistics_app_android.data.User
 import com.example.footballstatistics_app_android.data.UserDao
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LoginViewModel(private val userDao: UserDao) : ViewModel() {
 
     private val _loginResult = MutableStateFlow<LoginResult>(LoginResult.Initial)
-    val loginResult: StateFlow<LoginResult> = _loginResult.asStateFlow()
+    val loginResult: StateFlow<LoginResult> = _loginResult
 
     fun login(username: String, password: String) {
-        viewModelScope.launch {
-            userDao.loginUser(username, password).collect { users ->
-                if (users.isNotEmpty()) {
-                    _loginResult.value = LoginResult.Success(users.first())
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val user = userDao.getUserByUsernameAndPassword(username, password)
+                if (user != null) {
+                    withContext(Dispatchers.Main) {
+                        _loginResult.value = LoginResult.Success(user) // Pass the user object here
+                    }
                 } else {
-                    _loginResult.value = LoginResult.Error("Invalid username or password")
+                    withContext(Dispatchers.Main) {
+                        _loginResult.value = LoginResult.Error("Invalid username or password")
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    _loginResult.value = LoginResult.Error("An error occurred")
                 }
             }
         }

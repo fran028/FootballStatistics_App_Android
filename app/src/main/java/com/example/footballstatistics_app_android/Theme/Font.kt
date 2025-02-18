@@ -1,4 +1,4 @@
-package com.example.footballstatistics_app_android.theme
+package com.example.footballstatistics_app_android.Theme
 
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight

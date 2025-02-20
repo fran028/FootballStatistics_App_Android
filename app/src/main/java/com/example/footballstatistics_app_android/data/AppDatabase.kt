@@ -7,15 +7,16 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [User::class],
-    version = 1,
+    entities = [User::class, Match::class],
+    version = 2,
     exportSchema = true,
 //    autoMigrations = [
-//        AutoMigration(from = 3, to = 1),
+//        AutoMigration(from = 1, to = 2),
 //    ]
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
+    abstract fun matchDao(): MatchDao
 
     companion object {
         @Volatile

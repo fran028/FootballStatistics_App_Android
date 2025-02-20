@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -74,6 +76,7 @@ fun RegisterPage(navController: NavController){
     var password by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
     var heightString by remember { mutableStateOf("") }
+    var weightString by remember { mutableStateOf("") }
 
      val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = System.currentTimeMillis() // Set the initial date to today
@@ -104,11 +107,11 @@ fun RegisterPage(navController: NavController){
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.size(125.dp))
+            Spacer(modifier = Modifier.size(100.dp))
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "App Logo",
-                modifier = Modifier.size(124.dp)
+                modifier = Modifier.size(100.dp)
             )
             Spacer(modifier = Modifier.size(5.dp))
             Text(
@@ -221,14 +224,14 @@ fun RegisterPage(navController: NavController){
             Spacer(modifier = Modifier.size(20.dp))
             Row (
                 modifier = Modifier.width(350.dp)
-                    .height(60.dp),
+                    .height(50.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically) {
                 TextField(
                     value = formattedDate,
                     onValueChange = { formattedDate = it },
                     readOnly = true,
-                    prefix = {
+                    /*prefix = {
                         Text(
                             text = "Date",
                             fontFamily = RobotoCondensed,
@@ -238,10 +241,22 @@ fun RegisterPage(navController: NavController){
                                 fontFamily = RobotoCondensed
                             )
                         )
+                    },*/
+                    placeholder ={
+                        Text(
+                            text = "Date",
+                            style = TextStyle(
+                                color = black,
+                                fontSize = 16.sp,
+                                fontFamily = RobotoCondensed
+                            )
+                        )
                     },
+
                     modifier = Modifier
                         .width(260.dp)
-                        .height(60.dp),
+                        .fillMaxHeight()
+                        .padding(horizontal = 0.dp),
                     shape = RoundedCornerShape(8.dp),
                     textStyle = TextStyle(
                         fontFamily = RobotoCondensed,
@@ -302,9 +317,9 @@ fun RegisterPage(navController: NavController){
             TextField(
                 value = heightString,
                 onValueChange = { heightString = it },
-                prefix = {
+                /*prefix = {
                     Text(
-                        text = "Heigth",
+                        text = "Heigth (optional)",
                         fontFamily = RobotoCondensed,
                         style = TextStyle(
                             color = black,
@@ -321,18 +336,87 @@ fun RegisterPage(navController: NavController){
                             color = black,
                             fontSize = 16.sp,
                             fontFamily = RobotoCondensed
+                        ),
+                    )
+                },*/
+                placeholder ={
+                    Text(
+                        text = "Height (Cm)",
+                        style = TextStyle(
+                            color = black,
+                            fontSize = 16.sp,
+                            fontFamily = RobotoCondensed
                         )
                     )
                 },
                 modifier = Modifier
                     .width(350.dp)
-                    .height(50.dp),
+                    .heightIn(min = 50.dp, max = 50.dp),
                 shape = RoundedCornerShape(8.dp),
                 textStyle = TextStyle(
                     fontFamily = RobotoCondensed,
                     fontSize = 18.sp,
                     color = black,
-                    textAlign = TextAlign.Right,
+                    //textAlign = TextAlign.Right,
+                ),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = white, // Background when not focused
+                    focusedContainerColor = white, // Background when focused
+                    unfocusedIndicatorColor = Color.Transparent, // Remove the underline when not focused
+                    focusedIndicatorColor = Color.Transparent // Remove the underline when focused
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                )
+            )
+
+            Spacer(modifier = Modifier.size(20.dp))
+            TextField(
+                value = weightString,
+                onValueChange = { weightString = it },
+                /*prefix = {
+                    Text(
+                        text = "Weight (optional)",
+                        fontFamily = RobotoCondensed,
+                        style = TextStyle(
+                            color = black,
+                            fontSize = 18.sp,
+                            fontFamily = RobotoCondensed
+                        )
+                    )
+                },
+                suffix = {
+                    Text(
+                        text = "Kg",
+                        fontFamily = RobotoCondensed,
+                        style = TextStyle(
+                            color = black,
+                            fontSize = 16.sp,
+                            fontFamily = RobotoCondensed
+                        )
+                    )
+                },*/
+                placeholder ={
+                    Text(
+                        text = "Weight (Kg)",
+                        style = TextStyle(
+                            color = black,
+                            fontSize = 16.sp,
+                            fontFamily = RobotoCondensed
+                        )
+                    )
+                },
+                modifier = Modifier
+                    .width(350.dp)
+                    .height(50.dp)
+                    .padding(horizontal = 0.dp),
+                shape = RoundedCornerShape(8.dp),
+                textStyle = TextStyle(
+                    fontFamily = RobotoCondensed,
+                    fontSize = 18.sp,
+                    color = black,
+                    //textAlign = TextAlign.Right,
                 ),
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = white, // Background when not focused
@@ -347,14 +431,22 @@ fun RegisterPage(navController: NavController){
             )
             Spacer(modifier = Modifier.size(40.dp))
             ButtonObject(
-                text = "REGISTER",
+                text = "SIGN UP",
                 onClick = {
 
                     if (
                         username.isNotBlank()
                         && password.isNotBlank()
                         && fullName.isNotBlank()
-                        && formattedDate.isNotBlank() && heightString.isNotBlank()) {
+                        && formattedDate.isNotBlank()) {
+
+                        if(heightString.isBlank()){
+                            heightString = "0"
+                        }
+                        if(weightString.isBlank()){
+                            weightString = "0"
+                        }
+
                         coroutineScope.launch {
                             val usernameExists = userViewModel.checkUsernameExists(username)
                             if (usernameExists) {
@@ -370,6 +462,7 @@ fun RegisterPage(navController: NavController){
                                     password = password,
                                     fullName = fullName,
                                     height = heightString.toInt(),
+                                    weight = weightString.toInt(),
                                     date = formattedDate,
                                     id = ""
                                 )
@@ -391,6 +484,7 @@ fun RegisterPage(navController: NavController){
                                 fullName = ""
                                 formattedDate = ""
                                 heightString = ""
+                                weightString = ""
                                 navController.navigate(Screen.Login.route)
                             }
                         }

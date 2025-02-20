@@ -1,9 +1,11 @@
 package com.example.footballstatistics_app_android
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,10 +40,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.footballstatistics_app_android.pages.CalendarPage
 import com.example.footballstatistics_app_android.pages.HomePage
 import com.example.footballstatistics_app_android.pages.MatchPage
@@ -51,6 +55,7 @@ import com.example.footballstatistics_app_android.Theme.green
 import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.Theme.blue
+import com.example.footballstatistics_app_android.data.User
 import com.example.footballstatistics_app_android.pages.LoginPage
 import com.example.footballstatistics_app_android.pages.RegisterPage
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -90,6 +95,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainScreen(){
     val navController = rememberNavController()
@@ -156,7 +162,7 @@ fun MainScreen(){
                                             painterResource(id = item.selectedIcon)
                                         } else painterResource(id = item.unselectedIcon),
                                         contentDescription = item.title,
-                                        modifier = Modifier.size(40.dp)
+                                        modifier = Modifier.size(25.dp)
                                     )
                                 }
                             },
@@ -166,7 +172,7 @@ fun MainScreen(){
                                 unselectedIconColor = Color.Black
                             ),
                             modifier = Modifier
-                                .padding(horizontal = 28.dp)
+                                .padding(horizontal = 15.dp)
                                 .drawBehind {
                                     if (currentDestination?.hierarchy?.any { it.route == item.route } == true) {
                                         drawRoundRect(
@@ -175,12 +181,13 @@ fun MainScreen(){
                                                 8.dp.toPx()
                                             ),
                                             size = Size(
-                                                width = this.size.width,
-                                                height = 60.dp.toPx()
+                                                //width = this.size.width,
+                                                width = 50.dp.toPx(),
+                                                height = 50.dp.toPx()
                                             ),
                                             topLeft = Offset(
-                                                x = 0f,
-                                                y = (this.size.height - 60.dp.toPx()) / 2
+                                                x = (this.size.width - 50.dp.toPx()) / 2,
+                                                y = (this.size.height - 50.dp.toPx()) / 2
                                             )
                                         )
                                     }
@@ -199,7 +206,8 @@ fun MainScreen(){
             navController = navController,
             startDestination = Screen.Login.route,
             modifier = Modifier
-                .fillMaxSize().padding(innerPadding),
+                .fillMaxSize()
+                .padding(innerPadding),
         ) {
             composable(Screen.Login.route) {
                 LoginPage(
@@ -229,7 +237,15 @@ fun MainScreen(){
                     modifier = Modifier
                 )
             }
-            composable(Screen.Profile.route) {
+            composable( Screen.Profile.route,
+                /*arguments = listOf(
+                    navArgument("userId") {
+                        type = NavType.StringType
+                    }
+                )*/
+            ){
+                    /*entry ->
+                val userId = entry.arguments?.getString("userId") ?: ""*/
                 ProfilePage(
                     navController = navController,
                     modifier = Modifier

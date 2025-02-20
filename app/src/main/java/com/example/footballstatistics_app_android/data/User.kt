@@ -11,6 +11,7 @@ data class User(
     @ColumnInfo(name = "password") val password: String,
     @ColumnInfo(name = "full_name") val fullName: String,
     @ColumnInfo(name = "height") val height: Int,
+    @ColumnInfo(name = "weight") val weight: Int,
     @ColumnInfo(name = "date") val date: String,
     @ColumnInfo(name = "isLoggedIn") val isLoggedIn: Boolean = false,
 )

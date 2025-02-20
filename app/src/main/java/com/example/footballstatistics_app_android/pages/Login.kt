@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -31,6 +32,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -53,6 +56,7 @@ import com.example.footballstatistics_app_android.viewmodel.LoginViewModel
 import com.example.footballstatistics_app_android.viewmodel.LoginViewModelFactory
 import com.example.footballstatistics_app_android.viewmodel.UserViewModel
 import com.example.footballstatistics_app_android.viewmodel.UserViewModelFactory
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -78,6 +82,21 @@ fun LoginPage(navController: NavController) {
 
     var isError by remember { mutableStateOf(false) }
 
+    var isLoading by remember { mutableStateOf(false) }
+    var routeToNavigate by remember { mutableStateOf("") }
+    var shouldNavigate by remember { mutableStateOf(false) }
+
+    fun navigateWithLoading(route: String) {
+        isLoading = true
+        routeToNavigate = route
+        shouldNavigate = false
+        coroutineScope.launch {
+            delay(2000)
+            isLoading = false
+            shouldNavigate = true
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -94,11 +113,11 @@ fun LoginPage(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.size(125.dp))
+            Spacer(modifier = Modifier.size(150.dp))
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "App Logo",
-                modifier = Modifier.size(124.dp)
+                modifier = Modifier.size(200.dp)
             )
             Spacer(modifier = Modifier.size(5.dp))
             Text(
@@ -173,9 +192,9 @@ fun LoginPage(navController: NavController) {
                     focusedContainerColor = white, // Background when focused
                     unfocusedIndicatorColor = Color.Transparent, // Remove the underline when not focused
                     focusedIndicatorColor = Color.Transparent // Remove the underline when focused
-                )
-
-
+                ),
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
             if(isError){
                 Text(
@@ -184,7 +203,7 @@ fun LoginPage(navController: NavController) {
                     modifier = Modifier.padding(start = 16.dp)
                 )
             }
-            Spacer(modifier = Modifier.size(40.dp))
+            Spacer(modifier = Modifier.size(60.dp))
             ButtonObject(
                 text = "LOGIN",
                 onClick = {
@@ -199,7 +218,7 @@ fun LoginPage(navController: NavController) {
             )
             Spacer(modifier = Modifier.size(10.dp))
             ButtonObject(
-                text = "REGISTER",
+                text = "SIGN UP",
                 onClick = {
                     navController.navigate(Screen.Register.route)
                 },
@@ -220,9 +239,10 @@ fun LoginPage(navController: NavController) {
                         if (user != null) {
                             userViewModel.updateLoginStatus(user.id)
                         }
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
-                        }
+                        navigateWithLoading(Screen.Home.route)
+//                        navController.navigate(Screen.Home.route) {
+//                            popUpTo(Screen.Login.route) { inclusive = true }
+//                        }
                     }
                 }
             }
@@ -231,6 +251,18 @@ fun LoginPage(navController: NavController) {
                // Toast.makeText(context, loginResult.message, Toast.LENGTH_SHORT).show()
                 borderColor = red
                 isError = true
+            }
+        }
+    }
+    if (isLoading) {
+        LoadingScreen()
+    }
+
+    LaunchedEffect(shouldNavigate) {
+        if (shouldNavigate) {
+            //navController.navigate(routeToNavigate)
+            navController.navigate(routeToNavigate) {
+                popUpTo(Screen.Login.route) { inclusive = true }
             }
         }
     }

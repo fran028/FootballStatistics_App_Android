@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.footballstatistics_app_android.data.User
 import com.example.footballstatistics_app_android.data.UserRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -34,9 +36,18 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         }
     }
 
-    fun getLoginUser(): User? {
-        return userRepository.getLoginUser()
+    private val _loginUser = MutableStateFlow<User?>(null)
+    val loginUser: StateFlow<User?> = _loginUser
+
+    fun getLoginUser() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val user = userRepository.getLoginUser()
+            withContext(Dispatchers.Main) {
+                _loginUser.value = user
+            }
+        }
     }
+
 
     suspend fun getUserByUsername(username: String): User? {
         return withContext(Dispatchers.IO) {

@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -38,33 +40,124 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
+import com.example.footballstatistics_app_android.Screen
 import com.example.footballstatistics_app_android.Theme.LeagueGothic
 import com.example.footballstatistics_app_android.Theme.RobotoCondensed
 import com.example.footballstatistics_app_android.Theme.black
 import com.example.footballstatistics_app_android.Theme.blue
 import com.example.footballstatistics_app_android.Theme.gray
 import com.example.footballstatistics_app_android.Theme.white
+import com.example.footballstatistics_app_android.components.ButtonIconObject
 import com.example.footballstatistics_app_android.components.ViewTitle
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 
 @Composable
 fun CalendarPage(
     modifier: Modifier = Modifier,
     navController: NavController,
 ) {
-    var selectedDate by remember { mutableStateOf<java.util.Date?>(null) }
-    val currentMonth by remember { mutableStateOf(Calendar.getInstance()) }
+    val scrollState = rememberScrollState()
+    var selectedDate by remember { mutableStateOf<Date?>(null) }
+    var currentMonth by remember { mutableStateOf(Calendar.getInstance()) }
+    val dateFormat = SimpleDateFormat("dd/MM/yy", java.util.Locale.getDefault())
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(black),
+            .background(black).verticalScroll(scrollState) ,
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
         ViewTitle(title = "CALENDAR", image = R.drawable.calendar_img)
-        Spacer(modifier = Modifier.height(64.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 32.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .width(40.dp)
+                        .height(40.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background( white)
+                        .clickable { },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Day(
+                        day = 10,
+                        isSelected = true,
+                        onDateSelected = { },
+                        hasMatch = false,
+                        isToday = false
+                    )
+                }
+                Text(
+                    text = "SELECTED",
+                    fontFamily = LeagueGothic,
+                    fontSize = 24.sp,
+                    color = white
+                )
+                Box(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .width(40.dp)
+                        .height(40.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background( blue)
+                        .clickable { },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Day(
+                        day = 10,
+                        isSelected = false,
+                        onDateSelected = { },
+                        hasMatch = true,
+                        isToday = false
+                    )
+                }
+                Text(
+                    text = "MATCH",
+                    fontFamily = LeagueGothic,
+                    fontSize = 24.sp,
+                    color = white,
+                )
+                Box(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .width(40.dp)
+                        .height(40.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background( gray)
+                        .clickable { },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Day(
+                        day = 10,
+                        isSelected = false,
+                        onDateSelected = { },
+                        hasMatch = false,
+                        isToday = true
+                    )
+                }
+                Text(
+                    text = "TODAY",
+                    fontFamily = LeagueGothic,
+                    fontSize = 24.sp,
+                    color = white,
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         Column(Modifier.padding(horizontal = 36.dp)) {
             Box(
                 modifier = Modifier
@@ -76,7 +169,7 @@ fun CalendarPage(
                         color = Color.Transparent,
                         shape = RoundedCornerShape(8.dp),
                     )
-                    .height(500.dp),
+                    .height(400.dp),
             ) {
                 Column(
                     horizontalAlignment = Alignment.Start,
@@ -85,10 +178,14 @@ fun CalendarPage(
                     MonthHeader(
                         currentMonth = currentMonth,
                         onPreviousMonth = {
-                            currentMonth.add(Calendar.MONTH, -1)
+                            val newMonth = currentMonth.clone() as Calendar
+                            newMonth.add(Calendar.MONTH, -1)
+                            currentMonth = newMonth
                         },
                         onNextMonth = {
-                            currentMonth.add(Calendar.MONTH, 1)
+                            val newMonth = currentMonth.clone() as Calendar
+                            newMonth.add(Calendar.MONTH, 1)
+                            currentMonth = newMonth
                         }
                     )
                     CalendarGrid(
@@ -96,6 +193,65 @@ fun CalendarPage(
                         selectedDate = selectedDate,
                         onDateSelected = { selectedDate = it }
                     )
+                }
+            }
+        }
+        if(selectedDate != null){
+            Column {
+                Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    text = "MATCHES ON ${dateFormat.format(selectedDate)}",
+                    fontFamily = LeagueGothic,
+                    fontSize = 40.sp,
+                    color = white,
+                    modifier = Modifier.padding(horizontal = 32.dp)
+                        .fillMaxWidth()
+                        .align(Alignment.CenterHorizontally),
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Column (Modifier.padding(horizontal = 32.dp )) {
+                    for (i in 1..2) {
+                        ButtonIconObject(
+                            text = "Match $i",
+                            onClick = { navController.navigate(Screen.Match.route) },
+                            bgcolor = blue,
+                            height = 50.dp,
+                            textcolor = black,
+                            icon = R.drawable.soccer,
+                            value = "${dateFormat.format(selectedDate)}"
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+            }
+        }
+
+        Column {
+            Spacer(modifier = Modifier.height(32.dp))
+            Text(
+                text = "MATCHES PLAYED THIS MONTH",
+                fontFamily = LeagueGothic,
+                fontSize = 40.sp,
+                color = white,
+                modifier = Modifier.padding(horizontal = 32.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally),
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Column (Modifier.padding(horizontal = 32.dp )) {
+                for (i in 1..5) {
+                    ButtonIconObject(
+                        text = "Match $i",
+                        onClick = { navController.navigate(Screen.Match.route) },
+                        bgcolor = blue,
+                        height = 50.dp,
+                        textcolor = black,
+                        icon = R.drawable.soccer,
+                        value = "20/02/2025"
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
         }
@@ -131,7 +287,7 @@ fun MonthHeader(
             Text(
                 text = monthName,
                 fontFamily = LeagueGothic,
-                fontSize = 24.sp,
+                fontSize = 32.sp,
                 color = black,
                 modifier = Modifier.padding(horizontal = 32.dp, vertical = 4.dp)
             )
@@ -164,7 +320,7 @@ fun CalendarGrid(
         modifier = Modifier
             .fillMaxWidth()
             .background(blue)
-            .height(450.dp)
+            .height(550.dp)
     ) {
         items(items = getDayLabels()) { dayLabel ->
             DayLabel(dayLabel = dayLabel)
@@ -178,27 +334,29 @@ fun CalendarGrid(
             Day(
                 day = day,
                 isSelected = isSameDay(date.time, selectedDate),
-                onDateSelected = { onDateSelected(date.time) }
+                onDateSelected = { onDateSelected(date.time) },
+                hasMatch = dayHasMatch(date.time),
+                isToday = isSameDay(date.time, Date())
             )
         }
     }
 }
 
 @Composable
-fun Day(day: Int, isSelected: Boolean, onDateSelected: () -> Unit, hasMatch: Boolean = false) {
+fun Day(day: Int, isSelected: Boolean, onDateSelected: () -> Unit, hasMatch: Boolean = false, isToday: Boolean = false) {
     Box(
         modifier = Modifier
             .padding(4.dp)
             .width(40.dp)
             .height(40.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(if (isSelected) white else Color.Transparent)
+            .background( if (isSelected) white else if(hasMatch) black else if(isToday) gray else Color.Transparent)
             .clickable { onDateSelected() },
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = day.toString(),
-            color = if(hasMatch) blue else if (isSelected) gray else white,
+            color =  if (isSelected || hasMatch) blue else black,
             textAlign = TextAlign.Center,
             fontFamily = RobotoCondensed,
         )
@@ -226,7 +384,7 @@ fun DayLabel(dayLabel: String) {
     ) {
         Text(
             text = dayLabel,
-            color = white,
+            color = black,
             textAlign = TextAlign.Center,
             fontFamily = RobotoCondensed
         )
@@ -262,6 +420,12 @@ fun isSameDay(date1: java.util.Date, date2: java.util.Date?): Boolean {
 }
 
 fun dayHasMatch(date1: java.util.Date): Boolean{
-
-    return true
+    if (date1 == null) return false
+    val cal1 = Calendar.getInstance()
+    val cal2 = Calendar.getInstance()
+    cal1.time = date1
+    cal2.time = Date()
+    return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+            cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
+            cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
 }

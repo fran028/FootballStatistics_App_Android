@@ -17,6 +17,7 @@ import androidx.room.RoomDatabase
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun matchDao(): MatchDao
+    abstract fun locationDao(): LocationDao
 
     companion object {
         @Volatile

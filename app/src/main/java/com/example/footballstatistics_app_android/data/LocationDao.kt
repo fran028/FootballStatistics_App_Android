@@ -22,4 +22,8 @@ interface LocationDao {
 
     @Query("SELECT * FROM locations WHERE match_id = :id")
     suspend fun getLocationsByMatchId(id: String): List<Location>?
+
+    suspend fun checkIfMatchHasLocation(id: String): Boolean {
+        return (getLocationsByMatchId(id) != null)
+    }
 }

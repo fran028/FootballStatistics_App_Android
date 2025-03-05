@@ -6,6 +6,7 @@ plugins {
     id("kotlin-kapt")
 }
 
+
 android {
     namespace = "com.example.footballstatistics_app_android"
     compileSdk = 35
@@ -88,4 +89,5 @@ dependencies {
     implementation("androidx.room:room-paging:$room_version")
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
+
 }

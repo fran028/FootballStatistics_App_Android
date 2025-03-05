@@ -41,16 +41,18 @@ import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.components.ColorBar
+import com.example.footballstatistics_app_android.components.HeatmapChart
 import com.example.footballstatistics_app_android.components.StatBox
 import com.example.footballstatistics_app_android.components.ViewTitle
 
 @Composable
-fun MatchPage(modifier: Modifier = Modifier, navController: NavController) {
+fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match_id: String) {
     val scrollState = rememberScrollState()
 
     var velocitySelected by remember { mutableStateOf(false) }
     var distanceSelected by remember { mutableStateOf(true) }
     var heartrateSelected by remember { mutableStateOf(false) }
+    var chartName by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -103,6 +105,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController) {
                     onclick = { velocitySelected = true
                                 distanceSelected = false
                                 heartrateSelected = false
+                                chartName = "VELOCITY"
                     },
                     icon = R.drawable.speedometer,
                     text = "VELOCITY",
@@ -120,6 +123,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController) {
                         velocitySelected = false
                         distanceSelected = true
                         heartrateSelected = false
+                        chartName = "DISTANCE"
                     },
                     icon = R.drawable.sneaker,
                     text = "DISTANCE ",
@@ -136,6 +140,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController) {
                         velocitySelected = false
                         distanceSelected = false
                         heartrateSelected = true
+                        chartName = "HEARTRATE"
                     },
                     icon = R.drawable.cardiogram,
                     text = "HEARTRATE ",
@@ -152,7 +157,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Chart: Example",
+            text = "CHART - $chartName",
             fontFamily = RobotoCondensed,
             fontSize = 32.sp,
             color = white,
@@ -168,7 +173,36 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController) {
                     .height(125.dp),
                 contentAlignment = Alignment.Center
             ) {
+                if(heartrateSelected){
 
+                }
+                if(distanceSelected){
+
+                }
+                if(velocitySelected){
+
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "CHART - HEATMAP",
+            fontFamily = RobotoCondensed,
+            fontSize = 32.sp,
+            color = white,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Column (Modifier.padding(horizontal = 36.dp )){
+            Box(
+                modifier = Modifier.fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.Transparent)
+                    .border(width = 4.dp, color = white, shape = RoundedCornerShape(8.dp) )
+                    .height(125.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                HeatmapChart( match_id )
             }
         }
         Spacer(modifier = Modifier.height(24.dp))

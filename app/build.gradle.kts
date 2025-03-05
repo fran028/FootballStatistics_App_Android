@@ -90,4 +90,5 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") //
 }

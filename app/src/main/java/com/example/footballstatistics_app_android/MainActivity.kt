@@ -1,5 +1,6 @@
 package com.example.footballstatistics_app_android
 
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -37,6 +38,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -55,10 +58,11 @@ import com.example.footballstatistics_app_android.Theme.green
 import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.Theme.blue
-import com.example.footballstatistics_app_android.data.User
 import com.example.footballstatistics_app_android.pages.LoginPage
 import com.example.footballstatistics_app_android.pages.RegisterPage
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import android.Manifest
+import android.util.Log
 
 data class BottomNavigationItem(
     val title: String,
@@ -66,14 +70,20 @@ data class BottomNavigationItem(
     val unselectedIcon: Int,
     val hasNews: Boolean,
     val indicatorColor: Color,
-    val route: String
+    val route: String,
 )
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        checkBluetoothPermissions()
+        DataTransferService.startService(this)
+
         setContent {
             FootballStatistics_App_AndroidTheme {
                 val systemUiController = rememberSystemUiController()
@@ -90,6 +100,33 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 MainScreen()
+            }
+        }
+    }
+
+    private fun checkBluetoothPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ),
+                1
+            )
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 1) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("MainActivity", "Bluetooth permissions granted")
+            } else {
+                Log.w("MainActivity", "Bluetooth permissions denied")
             }
         }
     }
@@ -228,7 +265,8 @@ fun MainScreen(){
             composable(Screen.Match.route) {
                 MatchPage(
                     navController = navController,
-                    modifier = Modifier
+                    modifier = Modifier,
+                    match_id = 0.toString()
                 )
             }
             composable(Screen.Calendar.route) {
@@ -237,7 +275,8 @@ fun MainScreen(){
                     modifier = Modifier
                 )
             }
-            composable( Screen.Profile.route,
+            composable(
+                Screen.Profile.route,
                 /*arguments = listOf(
                     navArgument("userId") {
                         type = NavType.StringType

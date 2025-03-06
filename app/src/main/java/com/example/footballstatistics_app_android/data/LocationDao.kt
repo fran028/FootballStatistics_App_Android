@@ -26,4 +26,5 @@ interface LocationDao {
     suspend fun checkIfMatchHasLocation(id: String): Boolean {
         return (getLocationsByMatchId(id) != null)
     }
+
 }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,8 +44,11 @@ import com.example.footballstatistics_app_android.components.ColorBar
 import com.example.footballstatistics_app_android.components.RecordBox
 import com.example.footballstatistics_app_android.components.ViewTitle
 import com.example.footballstatistics_app_android.data.AppDatabase
+import com.example.footballstatistics_app_android.data.MatchRepository
 import com.example.footballstatistics_app_android.data.User
 import com.example.footballstatistics_app_android.data.UserRepository
+import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
+import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
 import com.example.footballstatistics_app_android.viewmodel.UserViewModel
 import com.example.footballstatistics_app_android.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.delay
@@ -72,6 +76,9 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
     val userRepository = UserRepository(appDatabase.userDao())
     val viewModelFactory = UserViewModelFactory(userRepository)
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory)
+    val matchRepository = MatchRepository(appDatabase.matchDao())
+    val matchViewModelFactory = MatchViewModelFactory(matchRepository)
+    val matchViewModel: MatchViewModel = viewModel(factory = matchViewModelFactory)
     val coroutineScope = rememberCoroutineScope()
 
     var isLoading by remember { mutableStateOf(false) }
@@ -89,16 +96,36 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
         }
     }
 
-    /*val username = user.username
-    val fullName = user.fullName
-    val height = user.height
-    val age = calculateAge(user.date)*/
+    LaunchedEffect(key1 = Unit) {
+        userViewModel.getLoginUser()
+        matchViewModel.getMatchCount()
+        matchViewModel.getTotalDuration()
+    }
+    val getUser by userViewModel.loginUser.collectAsState()
+    val getMatchCount by matchViewModel.matchCount.collectAsState()
+    val getTotalDuration by matchViewModel.totalDuration.collectAsState()
 
-    val username = "username"
-    val fullName = "fullName"
-    val height = 180
-    val weight = 70
-    val age = 20
+    if (getUser == null) {
+        navController.navigate(Screen.Login.route) {
+            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
+
+    val user = getUser ?: User(
+        id = "",
+        username = "",
+        password = "",
+        fullName = "",
+        height = 0,
+        weight = 0,
+        date = ""
+    )
+    val username = user.username
+    val age = calculateAge(user.date)
+    val height = user.height
+    val weight = user.weight
+
 
 
 
@@ -113,7 +140,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
         ViewTitle(title = "PROFILE", image = R.drawable.profile_img)
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = fullName,
+            text = username,
             fontFamily = RobotoCondensed,
             fontSize = 36.sp,
             color = white,
@@ -137,7 +164,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
                 color = white
             )
             Text(
-                text = "60Kg ",
+                text = "$weight kg ",
                 fontFamily = RobotoCondensed,
                 fontSize = 24.sp,
                 color = white
@@ -149,7 +176,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
             .padding(horizontal = 32.dp)) {
             ColorBar(
                 text = "MATCHES ",
-                value = "10 MP",
+                value = "$getMatchCount MP",
                 bgcolor = green,
                 textcolor = black,
                 width = 500.dp,
@@ -166,17 +193,8 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
             )
             Spacer(modifier = Modifier.height(12.dp))
             ColorBar(
-                text = "HEARTRATE ",
-                value = "159 bpm",
-                bgcolor = red,
-                textcolor = black,
-                width = 500.dp,
-                height = 50.dp
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            ColorBar(
                 text = "TIME ",
-                value = "10h 12m",
+                value = getTotalDuration,
                 bgcolor = blue,
                 textcolor = black,
                 width = 500.dp,
@@ -229,14 +247,6 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
                     text = "TOP\n DISTANCE ",
                     value = "7,3 km",
                     bgcolor = yellow,
-                    textcolor = white,
-                    height = 100.dp,
-                    width = 100.dp
-                )
-                RecordBox(
-                    text = "MAX HEARTRATE ",
-                    value = "190 bpm",
-                    bgcolor = red,
                     textcolor = white,
                     height = 100.dp,
                     width = 100.dp

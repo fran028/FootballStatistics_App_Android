@@ -7,7 +7,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import android.content.Context
@@ -18,9 +17,14 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.room.Room
 import com.example.footballstatistics_app_android.data.AppDatabase
 import com.example.footballstatistics_app_android.data.Location
+import com.example.footballstatistics_app_android.data.LocationDao
+import com.example.footballstatistics_app_android.data.LocationRepository
 import com.example.footballstatistics_app_android.data.Match
+import com.example.footballstatistics_app_android.data.MatchDao
+import com.example.footballstatistics_app_android.data.MatchRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,13 +34,37 @@ import java.io.IOException
 import java.io.ObjectInputStream
 import java.util.UUID
 
-
 class DataTransferService : Service() {
-    private lateinit var database: AppDatabase
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private var bluetoothServerSocket: BluetoothServerSocket? = null
     private var bluetoothSocket: BluetoothSocket? = null
     private var onBluetoothConnected: ((Boolean) -> Unit)? = null
+
+    // Database and DAOs
+    private val database: AppDatabase by lazy {
+        Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "football-database" // Name of the database file
+        ).build()
+    }
+
+    private val locationDao: LocationDao by lazy {
+        database.locationDao()
+    }
+
+    private val matchDao: MatchDao by lazy {
+        database.matchDao()
+    }
+
+    // Create repositories inside the service
+    private val locationRepository: LocationRepository by lazy {
+        LocationRepository(locationDao)
+    }
+
+    private val matchRepository: MatchRepository by lazy {
+        MatchRepository(matchDao)
+    }
 
     companion object {
         const val CHANNEL_ID = "DataChannel"
@@ -64,7 +92,7 @@ class DataTransferService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        database = AppDatabase.getDatabase(this)
+        //The database is now created when needed.
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -95,7 +123,8 @@ class DataTransferService : Service() {
                 Log.e("PhoneApp", "Bluetooth permission not granted")
                 return@launch
             }
-            bluetoothServerSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord("DataReceiver", MY_UUID)
+            bluetoothServerSocket =
+                bluetoothAdapter.listenUsingRfcommWithServiceRecord("DataReceiver", MY_UUID)
             Log.d("PhoneApp", "Bluetooth server started, listening for connections")
             bluetoothSocket = bluetoothServerSocket?.accept()
             if (bluetoothSocket != null) {
@@ -142,15 +171,15 @@ class DataTransferService : Service() {
 
     private suspend fun storeData(matchData: List<Match>, locationData: List<Location>) =
         withContext(Dispatchers.IO) {
-        matchData.forEach { match ->
-            database.matchDao().insertMatch(match)
-            Log.d("PhoneApp", "Received match: $match")
+            matchData.forEach { match ->
+                matchRepository.insertMatch(match)
+                Log.d("PhoneApp", "Received match: $match")
+            }
+            locationData.forEach { location ->
+                locationRepository.insertLocation(location)
+                Log.d("PhoneApp", "Received location: $location")
+            }
         }
-        locationData.forEach { location ->
-            database.locationDao().insertLocation(location)
-            Log.d("PhoneApp", "Received location: $location")
-        }
-    }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -168,12 +197,13 @@ class DataTransferService : Service() {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent: PendingIntent =
+            PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Data Service")
             .setContentText("Receiving data from smartwatch")
-            .setSmallIcon(R.mipmap.ic_launcher) // Use a standard Android icon
+            .setSmallIcon(R.mipmap.logo) // Use a standard Android icon
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .build()
@@ -191,5 +221,4 @@ class DataTransferService : Service() {
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
-
 }

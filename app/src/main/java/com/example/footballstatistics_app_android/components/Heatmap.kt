@@ -3,9 +3,11 @@ package com.example.footballstatistics_app_android.components
 import android.graphics.BlurMaskFilter
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,14 +18,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.footballstatistics_app_android.R
 import com.example.footballstatistics_app_android.Theme.black
 import com.example.footballstatistics_app_android.Theme.blue
 import com.example.footballstatistics_app_android.data.AppDatabase
@@ -98,7 +104,7 @@ fun CustomHeatmap(
     bottomRightLat: Double,
     bottomRightLon: Double,
     middleLat: Double,
-    middleLon: Double
+    middleLon: Double,
 ) {
     Box(
         modifier = Modifier
@@ -106,6 +112,14 @@ fun CustomHeatmap(
             .background(Color.Black)
             .padding(16.dp)
     ) {
+        Image(
+            painter = painterResource(id = R.drawable.pitch_transparent),
+            contentDescription = "Soccer Image",
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Center),
+            contentScale = ContentScale.FillWidth
+        )
         Canvas(modifier = Modifier.fillMaxSize()) {
             val canvasWidth = size.width
             val canvasHeight = size.height
@@ -186,7 +200,7 @@ fun mapGeoToPitch(
     middleLat: Double,
     middleLon: Double,
     pitchWidth: Double,
-    pitchHeight: Double
+    pitchHeight: Double,
 ): Offset {
 
     // Calculate differences in latitude and longitude

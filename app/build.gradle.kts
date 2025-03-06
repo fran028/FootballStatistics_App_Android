@@ -74,23 +74,23 @@ dependencies {
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
 
-    implementation("androidx.compose.ui:ui-text-google-fonts:1.7.7")
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.7.8")
 
-    val room_version = "2.6.1"
+    val roomversion = "2.6.1"
 
-    implementation("androidx.room:room-runtime:$room_version")
-    annotationProcessor("androidx.room:room-compiler:$room_version")
-    kapt("androidx.room:room-compiler:$room_version")
-    implementation("androidx.room:room-ktx:$room_version")
-    implementation("androidx.room:room-rxjava2:$room_version")
-    implementation("androidx.room:room-rxjava3:$room_version")
-    implementation("androidx.room:room-guava:$room_version")
-    testImplementation("androidx.room:room-testing:$room_version")
-    implementation("androidx.room:room-paging:$room_version")
+    implementation("androidx.room:room-runtime:$roomversion")
+    annotationProcessor("androidx.room:room-compiler:$roomversion")
+    kapt("androidx.room:room-compiler:$roomversion")
+    implementation("androidx.room:room-ktx:$roomversion")
+    implementation("androidx.room:room-rxjava2:$roomversion")
+    implementation("androidx.room:room-rxjava3:$roomversion")
+    implementation("androidx.room:room-guava:$roomversion")
+    testImplementation("androidx.room:room-testing:$roomversion")
+    implementation("androidx.room:room-paging:$roomversion")
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
-    implementation("androidx.compose.material:material-icons-extended:1.6.6")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 }

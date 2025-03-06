@@ -1,5 +1,7 @@
 package com.example.footballstatistics_app_android.pages
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,17 +20,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
 import com.example.footballstatistics_app_android.Theme.LeagueGothic
@@ -39,15 +46,39 @@ import com.example.footballstatistics_app_android.Theme.green
 import com.example.footballstatistics_app_android.Theme.red
 import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
-import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.components.ColorBar
 import com.example.footballstatistics_app_android.components.HeatmapChart
 import com.example.footballstatistics_app_android.components.StatBox
 import com.example.footballstatistics_app_android.components.ViewTitle
+import com.example.footballstatistics_app_android.data.AppDatabase
+import com.example.footballstatistics_app_android.data.Match
+import com.example.footballstatistics_app_android.data.MatchRepository
+import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
+import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
+import androidx.compose.runtime.collectAsState
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match_id: String) {
     val scrollState = rememberScrollState()
+
+    val context = LocalContext.current
+    val database = AppDatabase.getDatabase(context)
+    val matchRepository = MatchRepository(database.matchDao())
+    val matchViewModelFactory = MatchViewModelFactory(matchRepository)
+    val matchViewModel: MatchViewModel = viewModel(factory = matchViewModelFactory)
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(match_id) {
+        matchViewModel.getMatch(match_id)
+    }
+
+    val match by matchViewModel.match.collectAsState()
+
+    val currentMatch = match ?: matchViewModel.emptyMatch()
+
 
     var velocitySelected by remember { mutableStateOf(false) }
     var distanceSelected by remember { mutableStateOf(true) }
@@ -71,14 +102,14 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
                 .padding(horizontal = 32.dp)) {
             Column {
                 Text(
-                    text = "03 / 02 / 2025",
+                    text = currentMatch.date,
                     fontFamily = RobotoCondensed,
                     fontSize = 40.sp,
                     color = white,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "00h:58m:32s",
+                    text = currentMatch.total_time,
                     fontFamily = RobotoCondensed,
                     fontSize = 38.sp,
                     color = white,
@@ -157,7 +188,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
 
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "CHART - $chartName",
+            text = "CHART - HEATMAP",
             fontFamily = RobotoCondensed,
             fontSize = 32.sp,
             color = white,
@@ -166,22 +197,15 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 36.dp )){
             Box(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
                     .background(Color.Transparent)
-                    .border(width = 4.dp, color = white, shape = RoundedCornerShape(8.dp) )
+                    .border(width = 4.dp, color = white, shape = RoundedCornerShape(8.dp))
                     .height(125.dp),
                 contentAlignment = Alignment.Center
             ) {
-                if(heartrateSelected){
-
-                }
-                if(distanceSelected){
-
-                }
-                if(velocitySelected){
-
-                }
+                HeatmapChart( match_id )
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -195,10 +219,11 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 36.dp )){
             Box(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
                     .background(Color.Transparent)
-                    .border(width = 4.dp, color = white, shape = RoundedCornerShape(8.dp) )
+                    .border(width = 4.dp, color = white, shape = RoundedCornerShape(8.dp))
                     .height(125.dp),
                 contentAlignment = Alignment.Center
             ) {

@@ -90,5 +90,7 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") //
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    implementation("androidx.compose.material:material-icons-extended:1.6.6")
 }

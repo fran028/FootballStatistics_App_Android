@@ -63,6 +63,13 @@ import com.example.footballstatistics_app_android.pages.RegisterPage
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import android.Manifest
 import android.util.Log
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.BluetoothDisabled
 
 data class BottomNavigationItem(
     val title: String,
@@ -74,6 +81,8 @@ data class BottomNavigationItem(
 )
 
 class MainActivity : ComponentActivity() {
+    private var isBluetoothConnected = mutableStateOf(false)
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -82,7 +91,7 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         checkBluetoothPermissions()
-        DataTransferService.startService(this)
+        DataTransferService.startService(this, ::onBluetoothConnected)
 
         setContent {
             FootballStatistics_App_AndroidTheme {
@@ -100,9 +109,11 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 MainScreen()
+                BluetoothStatusIcon(isBluetoothConnected.value)
             }
         }
     }
+
 
     private fun checkBluetoothPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
@@ -129,6 +140,27 @@ class MainActivity : ComponentActivity() {
                 Log.w("MainActivity", "Bluetooth permissions denied")
             }
         }
+    }
+
+    private fun onBluetoothConnected(isConnected: Boolean) {
+        isBluetoothConnected.value = isConnected
+    }
+}
+
+@Composable
+fun BluetoothStatusIcon(isConnected: Boolean) {
+    Row(
+        modifier = Modifier
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = if (isConnected) Icons.Filled.Bluetooth else Icons.Filled.BluetoothDisabled,
+            contentDescription = "Bluetooth Status",
+            modifier = Modifier.size(32.dp)
+        )
+        Spacer(modifier = Modifier.padding(8.dp))
+        Text(text = if (isConnected) "Bluetooth Connected" else "Bluetooth Disconnected")
     }
 }
 

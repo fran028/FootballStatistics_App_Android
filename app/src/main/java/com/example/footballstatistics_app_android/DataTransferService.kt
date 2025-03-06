@@ -36,19 +36,24 @@ class DataTransferService : Service() {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private var bluetoothServerSocket: BluetoothServerSocket? = null
     private var bluetoothSocket: BluetoothSocket? = null
+    private var onBluetoothConnected: ((Boolean) -> Unit)? = null
 
     companion object {
         const val CHANNEL_ID = "DataChannel"
         const val NOTIFICATION_ID = 1
         private val MY_UUID: UUID = UUID.fromString("YOUR_UNIQUE_UUID") // Same UUID as smartwatch
 
-        fun startService(context: Context) {
+        fun startService(context: Context, onBluetoothConnected: (Boolean) -> Unit) {
             val intent = Intent(context, DataTransferService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
             } else {
                 context.startService(intent)
             }
+            val serviceIntent = Intent(context, DataTransferService::class.java)
+            context.startService(serviceIntent)
+            val dataService = DataTransferService()
+            dataService.onBluetoothConnected = onBluetoothConnected
         }
 
         fun stopService(context: Context) {

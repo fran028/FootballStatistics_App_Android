@@ -1,6 +1,7 @@
 package com.example.footballstatistics_app_android.pages
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -105,12 +107,6 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
     val getMatchCount by matchViewModel.matchCount.collectAsState()
     val getTotalDuration by matchViewModel.totalDuration.collectAsState()
 
-    if (getUser == null) {
-        navController.navigate(Screen.Login.route) {
-            popUpTo(navController.graph.startDestinationId) { inclusive = true }
-            launchSingleTop = true
-        }
-    }
 
     val user = getUser ?: User(
         id = "",
@@ -121,11 +117,11 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
         weight = 0,
         date = ""
     )
-    val username = user.username
+    val name = user.fullName
     val age = calculateAge(user.date)
     val height = user.height
     val weight = user.weight
-
+    val stayLogin = user.isLoggedIn
 
 
 
@@ -140,7 +136,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
         ViewTitle(title = "PROFILE", image = R.drawable.profile_img)
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = username,
+            text = name,
             fontFamily = RobotoCondensed,
             fontSize = 36.sp,
             color = white,
@@ -148,7 +144,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = age.toString(),
+            text = "$age",
             fontFamily = RobotoCondensed,
             fontSize = 32.sp,
             color = white,
@@ -158,13 +154,14 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
         Row(horizontalArrangement = Arrangement.Start,
             modifier = Modifier.padding(horizontal = 32.dp)) {
             Text(
-                text = "$height cm ",
+                text = "${height}cm ",
                 fontFamily = RobotoCondensed,
                 fontSize = 24.sp,
                 color = white
             )
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = "$weight kg ",
+                text = "${weight}kg ",
                 fontFamily = RobotoCondensed,
                 fontSize = 24.sp,
                 color = white
@@ -273,8 +270,8 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
                 height = 60.dp,
                 onClick = {
                     coroutineScope.launch {
-                        //userViewModel.updateLoginStatus(user.id)
-                        navigateWithLoading(Screen.Home.route)
+                        userViewModel.logOutUsers()
+                        navigateWithLoading(Screen.Login.route)
 
                     }
                 }

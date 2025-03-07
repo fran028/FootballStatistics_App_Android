@@ -17,6 +17,10 @@ class UserRepository(private val userDao: UserDao) {
         return userDao.getLoginUser()
     }
 
+    suspend fun logOutUsers() {
+        userDao.logOutUsers()
+    }
+
 
 
 }

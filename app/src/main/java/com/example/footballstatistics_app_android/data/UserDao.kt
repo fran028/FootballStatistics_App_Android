@@ -34,6 +34,9 @@ interface UserDao {
     @Query("UPDATE users SET isLoggedIn = 1 WHERE id = :userId")
     suspend fun updateLoginStatus(userId: String)
 
+    @Query("UPDATE users SET isLoggedIn = 0")
+    suspend fun logOutUsers()
+
     @Query("SELECT * FROM users WHERE isLoggedIn = 1")
     fun getLoginUser(): User?
 }

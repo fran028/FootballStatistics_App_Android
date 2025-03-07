@@ -36,6 +36,12 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         }
     }
 
+    fun logOutUsers() {
+        viewModelScope.launch {
+            userRepository.logOutUsers()
+        }
+    }
+
     private val _loginUser = MutableStateFlow<User?>(null)
     val loginUser: StateFlow<User?> = _loginUser
 

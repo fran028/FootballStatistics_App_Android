@@ -90,8 +90,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        checkBluetoothPermissions()
-        DataTransferService.startService(this, ::onBluetoothConnected)
+        //checkBluetoothPermissions()
+        //DataTransferService.startService(this, ::onBluetoothConnected)
 
         setContent {
             FootballStatistics_App_AndroidTheme {

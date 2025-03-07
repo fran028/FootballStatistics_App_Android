@@ -37,14 +37,14 @@ fun LoadingScreen(){
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "App Logo",
-                modifier = Modifier.size(200.dp)
+                modifier = Modifier.size(150.dp)
             )
             Spacer(modifier = Modifier.size(5.dp))
             Text(
                 text = "FOOTBALL STATISTICS",
                 style = TextStyle(
                     fontFamily = LeagueGothic,
-                    fontSize = 60.sp,
+                    fontSize = 50.sp,
                     color = white
                 )
             )

@@ -56,6 +56,7 @@ import com.example.footballstatistics_app_android.data.MatchRepository
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
 import androidx.compose.runtime.collectAsState
+import com.example.footballstatistics_app_android.Screen
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -76,6 +77,10 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
     }
 
     val match by matchViewModel.match.collectAsState()
+
+    if(match == null){
+        navController.navigate(Screen.Home.route)
+    }
 
     val currentMatch = match ?: matchViewModel.emptyMatch()
 

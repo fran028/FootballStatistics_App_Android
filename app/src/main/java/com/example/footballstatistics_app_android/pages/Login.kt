@@ -1,6 +1,6 @@
 package com.example.footballstatistics_app_android.pages
 
-
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -67,35 +67,62 @@ fun LoginPage(navController: NavController) {
     val userDao = database.userDao()
     val loginViewModel: LoginViewModel = viewModel(factory = LoginViewModelFactory(userDao))
 
-
     val userRepository = UserRepository(database.userDao())
     val viewModelFactory = UserViewModelFactory(userRepository)
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory)
     val coroutineScope = rememberCoroutineScope()
 
-    val loginResult by loginViewModel.loginResult.collectAsState()
-
-    var borderColor by remember { mutableStateOf(white) }
-
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-
-    var isError by remember { mutableStateOf(false) }
+    LaunchedEffect(key1 = Unit) {
+        userViewModel.getLoginUser()
+    }
+    val userLoggedIn by userViewModel.loginUser.collectAsState()
 
     var isLoading by remember { mutableStateOf(false) }
     var routeToNavigate by remember { mutableStateOf("") }
     var shouldNavigate by remember { mutableStateOf(false) }
+    var navigatedToHome by remember { mutableStateOf(false) }
 
-    fun navigateWithLoading(route: String) {
+    fun navigateWithLoading(route: String, time: Long) {
+        Log.d("Navigation", "Navigating to $route")
         isLoading = true
         routeToNavigate = route
         shouldNavigate = false
         coroutineScope.launch {
-            delay(2000)
+            Log.d("Navigation", "Delaying for $time milliseconds")
+            delay(time)
+            Log.d("Navigation", "Delay completed")
             isLoading = false
             shouldNavigate = true
         }
     }
+
+    if(userLoggedIn != null) {
+        var user = userLoggedIn
+        var loggedIn = user?.isLoggedIn
+        // Add the condition to check if we have already navigated.
+        if (loggedIn == true && !navigatedToHome) {
+            navigateWithLoading(Screen.Home.route, 1000)
+            // Set the flag to true so that we don't navigate again.
+            navigatedToHome = true
+        }
+    }
+
+    LaunchedEffect(shouldNavigate) {
+        Log.d("Navigation", "shouldNavigate: $shouldNavigate")
+        if (shouldNavigate) {
+            Log.d("Navigation", "Navigating to $routeToNavigate")
+            //navController.navigate(routeToNavigate)
+            navController.navigate(routeToNavigate) {
+                popUpTo(Screen.Login.route) { inclusive = true }
+            }
+        }
+    }
+
+    var borderColor by remember { mutableStateOf(white) }
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var isError by remember { mutableStateOf(false) }
+    val loginResult by loginViewModel.loginResult.collectAsState()
 
     Box(
         modifier = Modifier
@@ -239,7 +266,7 @@ fun LoginPage(navController: NavController) {
                         if (user != null) {
                             userViewModel.updateLoginStatus(user.id)
                         }
-                        navigateWithLoading(Screen.Home.route)
+                        navigateWithLoading(Screen.Home.route, 2000)
 //                        navController.navigate(Screen.Home.route) {
 //                            popUpTo(Screen.Login.route) { inclusive = true }
 //                        }
@@ -258,12 +285,5 @@ fun LoginPage(navController: NavController) {
         LoadingScreen()
     }
 
-    LaunchedEffect(shouldNavigate) {
-        if (shouldNavigate) {
-            //navController.navigate(routeToNavigate)
-            navController.navigate(routeToNavigate) {
-                popUpTo(Screen.Login.route) { inclusive = true }
-            }
-        }
-    }
+
 }

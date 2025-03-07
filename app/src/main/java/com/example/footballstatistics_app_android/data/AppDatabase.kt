@@ -7,7 +7,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [User::class, Match::class],
+    entities = [User::class, Match::class, Location::class],
     version = 3,
     exportSchema = true,
 //    autoMigrations = [

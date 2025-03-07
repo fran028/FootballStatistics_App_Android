@@ -65,7 +65,11 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
     }
     val lastMatches by matchViewModel.lastMatch.collectAsState()
 
-    val lastMatch = lastMatches[0] ?: matchViewModel.emptyMatch()
+    var lastMatch = matchViewModel.emptyMatch()
+
+    if (!lastMatches.isEmpty()) {
+        lastMatch = lastMatches[0] ?: matchViewModel.emptyMatch()
+    }
 
     val newUser = if(lastMatches.isNotEmpty()) false else true
 
@@ -106,6 +110,10 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
                 modifier = Modifier.size(70.dp)
             )
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp)) {
             Text(
                 text = "LAST MATCH CHART",
                 fontFamily = LeagueGothic,
@@ -114,34 +122,31 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-        if(newUser) {
-            Text(
-                text = "EmptyExample",
-                fontFamily = LeagueGothic,
-                fontSize = 32.sp,
-                color = white,
-                modifier = Modifier.padding(horizontal = 32.dp)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Column(Modifier.padding(horizontal = 36.dp)) {
-                Image(
-                    painter = painterResource(id = R.drawable.pitch_color),
-                    contentDescription = "Soccer Image",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .rotate(90f)
+            if (newUser) {
+                Text(
+                    text = "EmptyExample",
+                    fontFamily = LeagueGothic,
+                    fontSize = 32.sp,
+                    color = white
                 )
-            }
-        } else {
-            Text(
-                text = "HEATMAP",
-                fontFamily = LeagueGothic,
-                fontSize = 32.sp,
-                color = white,
-                modifier = Modifier.padding(horizontal = 32.dp)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Column(Modifier.padding(horizontal = 36.dp)) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(modifier = modifier.fillMaxWidth()) {
+                    Image(
+                        painter = painterResource(id = R.drawable.pitch_color),
+                        contentDescription = "Soccer Image",
+                        modifier = Modifier.fillMaxWidth()
+                            .rotate(90f)
+                    )
+                }
+            } else {
+                Text(
+                    text = "HEATMAP",
+                    fontFamily = LeagueGothic,
+                    fontSize = 32.sp,
+                    color = white,
+                    modifier = Modifier.padding(horizontal = 32.dp)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
                 HeatmapChart(lastMatch.id)
             }
         }
@@ -161,6 +166,7 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 30.dp )) {
             if(lastMatches.isEmpty()){
+                Spacer(modifier = Modifier.height(8.dp))
                 ButtonIconObject(
                     text = "No matches found",
                     bgcolor = white,

@@ -69,7 +69,7 @@ class DataTransferService : Service() {
     companion object {
         const val CHANNEL_ID = "DataChannel"
         const val NOTIFICATION_ID = 1
-        private val MY_UUID: UUID = UUID.fromString("YOUR_UNIQUE_UUID") // Same UUID as smartwatch
+        private val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
 
         fun startService(context: Context, onBluetoothConnected: (Boolean) -> Unit) {
             val intent = Intent(context, DataTransferService::class.java)

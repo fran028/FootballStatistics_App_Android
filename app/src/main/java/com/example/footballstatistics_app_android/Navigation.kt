@@ -10,5 +10,5 @@ sealed class Screen(val route: String) {
     }
     object Login: Screen("Login")
     object Register: Screen("Register")
-
+    object Loading: Screen("Loading")
 }

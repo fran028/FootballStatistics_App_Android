@@ -1,5 +1,7 @@
 package com.example.footballstatistics_app_android.pages
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,17 +29,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
 import com.example.footballstatistics_app_android.Screen
@@ -49,19 +56,46 @@ import com.example.footballstatistics_app_android.Theme.gray
 import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.components.ButtonIconObject
 import com.example.footballstatistics_app_android.components.ViewTitle
+import com.example.footballstatistics_app_android.data.AppDatabase
+import com.example.footballstatistics_app_android.data.MatchRepository
+import com.example.footballstatistics_app_android.data.UserRepository
+import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
+import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
+import com.example.footballstatistics_app_android.viewmodel.UserViewModel
+import com.example.footballstatistics_app_android.viewmodel.UserViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CalendarPage(
     modifier: Modifier = Modifier,
     navController: NavController,
 ) {
+
+    val context = LocalContext.current
+    val database = AppDatabase.getDatabase(context)
+    val matchRepository = MatchRepository(database.matchDao())
+    val matchViewModelFactory = MatchViewModelFactory(matchRepository)
+    val matchViewModel: MatchViewModel = viewModel(factory = matchViewModelFactory)
+    val userRepository = UserRepository(database.userDao())
+    val userViewModelFactory = UserViewModelFactory(userRepository)
+    val userViewModel: UserViewModel = viewModel(factory = userViewModelFactory)
+    val coroutineScope = rememberCoroutineScope()
+
     val scrollState = rememberScrollState()
     var selectedDate by remember { mutableStateOf<Date?>(null) }
     var currentMonth by remember { mutableStateOf(Calendar.getInstance()) }
     val dateFormat = SimpleDateFormat("dd/MM/yy", java.util.Locale.getDefault())
+
+    var userid by remember { mutableStateOf("") }
+
+    LaunchedEffect(key1 = Unit) {
+        userViewModel.getLoginUser().toString()
+        matchViewModel.getMatchesBetweenDates(selectedDate.toString(), selectedDate.toString(),userViewModel.loginUser.toString())
+    }
+    val dateMatches by matchViewModel.matchesBetweenDates.collectAsState()
 
     Column(
         modifier = Modifier
@@ -71,7 +105,7 @@ fun CalendarPage(
         verticalArrangement = Arrangement.Top
     ) {
         ViewTitle(title = "CALENDAR", image = R.drawable.calendar_img)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
@@ -96,7 +130,7 @@ fun CalendarPage(
                     Day(
                         day = 10,
                         isSelected = true,
-                        onDateSelected = { },
+                        onDateSelected = {  },
                         hasMatch = false,
                         isToday = false
                     )
@@ -191,7 +225,12 @@ fun CalendarPage(
                     CalendarGrid(
                         currentMonth = currentMonth,
                         selectedDate = selectedDate,
-                        onDateSelected = { selectedDate = it }
+                        onDateSelected = {
+                            selectedDate = it
+                            matchViewModel.getMatchesBetweenDates(selectedDate.toString(),selectedDate.toString(),userViewModel.loginUser.toString())
+                        },
+                        matchViewModel = matchViewModel,
+                        userViewModel = userViewModel
                     )
                 }
             }
@@ -211,22 +250,37 @@ fun CalendarPage(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Column (Modifier.padding(horizontal = 32.dp )) {
-                    for (i in 1..2) {
+                    if(dateMatches.isEmpty()){
+                        Spacer(modifier = Modifier.height(8.dp))
                         ButtonIconObject(
-                            text = "Match $i",
-                            onClick = { navController.navigate(Screen.Match.route) },
-                            bgcolor = blue,
+                            text = "No matches found",
+                            bgcolor = white,
                             height = 50.dp,
                             textcolor = black,
+                            value = "",
                             icon = R.drawable.soccer,
-                            value = "${dateFormat.format(selectedDate)}"
+                            onClick = {  }
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
+                    } else {
+                        for (match in dateMatches) {
+                            if (match != null) {
+                                ButtonIconObject(
+                                    text = "Match ${match.id}",
+                                    onClick = { navController.navigate(Screen.Match.route) },
+                                    bgcolor = blue,
+                                    height = 50.dp,
+                                    textcolor = black,
+                                    icon = R.drawable.soccer,
+                                    value = match.date
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
                     }
                 }
             }
         }
-
+        /*
         Column {
             Spacer(modifier = Modifier.height(32.dp))
             Text(
@@ -254,7 +308,7 @@ fun CalendarPage(
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
-        }
+        }*/
     }
 }
 
@@ -306,7 +360,9 @@ fun MonthHeader(
 fun CalendarGrid(
     currentMonth: Calendar,
     selectedDate: java.util.Date?,
-    onDateSelected: (java.util.Date) -> Unit
+    onDateSelected: (java.util.Date) -> Unit,
+    matchViewModel: MatchViewModel,
+    userViewModel: UserViewModel,
 ) {
     val daysInMonth = currentMonth.getActualMaximum(Calendar.DAY_OF_MONTH)
     val firstDayOfMonth = currentMonth.clone() as Calendar
@@ -335,7 +391,7 @@ fun CalendarGrid(
                 day = day,
                 isSelected = isSameDay(date.time, selectedDate),
                 onDateSelected = { onDateSelected(date.time) },
-                hasMatch = dayHasMatch(date.time),
+                hasMatch = matchViewModel.dayHasMatch(date.time.toString(), userViewModel.loginUser.toString()),
                 isToday = isSameDay(date.time, Date())
             )
         }
@@ -419,13 +475,13 @@ fun isSameDay(date1: java.util.Date, date2: java.util.Date?): Boolean {
             cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
 }
 
-fun dayHasMatch(date1: java.util.Date): Boolean{
-    if (date1 == null) return false
-    val cal1 = Calendar.getInstance()
-    val cal2 = Calendar.getInstance()
-    cal1.time = date1
-    cal2.time = Date()
-    return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-            cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
-            cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
-}
+//fun dayHasMatch(date1: java.util.Date): Boolean{
+//    if (date1 == null) return false
+//    val cal1 = Calendar.getInstance()
+//    val cal2 = Calendar.getInstance()
+//    cal1.time = date1
+//    cal2.time = Date()
+//    return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+//            cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
+//            cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
+//}

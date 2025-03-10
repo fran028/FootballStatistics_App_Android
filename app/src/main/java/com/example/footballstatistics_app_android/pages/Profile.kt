@@ -100,7 +100,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
 
     LaunchedEffect(key1 = Unit) {
         userViewModel.getLoginUser()
-        matchViewModel.getMatchCount()
+        matchViewModel.getMatchCount(userViewModel.loginUser.toString())
         matchViewModel.getTotalDuration()
     }
     val getUser by userViewModel.loginUser.collectAsState()

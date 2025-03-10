@@ -1,6 +1,7 @@
 package com.example.footballstatistics_app_android.pages
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -57,6 +58,8 @@ import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
 import androidx.compose.runtime.collectAsState
 import com.example.footballstatistics_app_android.Screen
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -72,17 +75,17 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
     val matchViewModel: MatchViewModel = viewModel(factory = matchViewModelFactory)
     val coroutineScope = rememberCoroutineScope()
 
+    val match by matchViewModel.match.collectAsState(initial = null)
     LaunchedEffect(match_id) {
-        matchViewModel.getMatch(match_id)
-    }
-
-    val match by matchViewModel.match.collectAsState()
-
-    if(match == null){
-        navController.navigate(Screen.Home.route)
+        Log.d("MatchPage", "Fetching match with ID: $match_id")
+        coroutineScope.launch(Dispatchers.IO) {
+            matchViewModel.getMatch(match_id)
+            Log.d("MatchPage", "Fetched match: $match")
+        }
     }
 
     val currentMatch = match ?: matchViewModel.emptyMatch()
+    Log.d("MatchPage", "Current match: $currentMatch")
 
 
     var velocitySelected by remember { mutableStateOf(false) }
@@ -210,7 +213,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
                     .height(125.dp),
                 contentAlignment = Alignment.Center
             ) {
-                HeatmapChart( match_id )
+                //HeatmapChart( match_id )
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -232,7 +235,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
                     .height(125.dp),
                 contentAlignment = Alignment.Center
             ) {
-                HeatmapChart( match_id )
+                //HeatmapChart( match_id )
             }
         }
         Spacer(modifier = Modifier.height(24.dp))

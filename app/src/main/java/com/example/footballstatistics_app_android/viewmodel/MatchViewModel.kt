@@ -4,7 +4,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.footballstatistics_app_android.data.Match
 import com.example.footballstatistics_app_android.data.MatchRepository
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +28,19 @@ class MatchViewModel(private val repository: MatchRepository) : ViewModel() {
     private val _totalDuration = MutableStateFlow<String>("00:00:00")
     val totalDuration: StateFlow<String> = _totalDuration
 
+    private val _matchesBetweenDates = MutableStateFlow<List<Match?>>(listOf())
+    val matchesBetweenDates: StateFlow<List<Match?>> = _matchesBetweenDates
+
+
+    fun getMatchesBetweenDates(startDate: String, endDate: String, userId: String){
+        viewModelScope.launch(Dispatchers.IO) {
+            val matchList = repository.getMatchesBetweenDates(startDate, endDate, userId)
+            withContext(Dispatchers.Main) {
+                _matchesBetweenDates.value = matchList
+            }
+        }
+    }
+
     fun getLastMatches() {
         viewModelScope.launch(Dispatchers.IO) {
             val matchList = repository.getLastMatches(5)
@@ -48,9 +60,9 @@ class MatchViewModel(private val repository: MatchRepository) : ViewModel() {
     }
 
 
-    fun getMatchCount(){
+    fun getMatchCount(id: String){
         viewModelScope.launch(Dispatchers.IO) {
-            val matchCount = repository.getMatchCount()
+            val matchCount = repository.getMatchCount(id)
             withContext(Dispatchers.Main) {
                 _matchCount.value = matchCount
             }
@@ -90,6 +102,16 @@ class MatchViewModel(private val repository: MatchRepository) : ViewModel() {
         return emptymatch
     }
 
+    fun dayHasMatch(date: String, userId: String): Boolean {
+        var hasMatch = false
+        viewModelScope.launch(Dispatchers.IO) {
+            val match = repository.getMatchesBetweenDates(date, date, userId)
+            withContext(Dispatchers.Main) {
+                hasMatch = match.isNotEmpty()
+            }
+        }
+        return hasMatch
+    }
 
     fun insertMatch(match: Match) {
         viewModelScope.launch {
@@ -113,7 +135,6 @@ class MatchViewModel(private val repository: MatchRepository) : ViewModel() {
 
     fun getLastMatches(amount: Int) = repository.getLastMatches(amount)
 
-    fun getMatchesBetweenDates(startDate: String, endDate: String) = repository.getMatchesBetweenDates(startDate, endDate)
 
 
 }

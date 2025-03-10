@@ -1,6 +1,7 @@
 package com.example.footballstatistics_app_android.pages
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,7 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -44,8 +48,13 @@ import com.example.footballstatistics_app_android.components.ViewTitle
 import com.example.footballstatistics_app_android.data.AppDatabase
 import com.example.footballstatistics_app_android.data.Match
 import com.example.footballstatistics_app_android.data.MatchRepository
+import com.example.footballstatistics_app_android.data.UserRepository
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
+import com.example.footballstatistics_app_android.viewmodel.UserViewModel
+import com.example.footballstatistics_app_android.viewmodel.UserViewModelFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -58,6 +67,9 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
     val matchRepository = MatchRepository(database.matchDao())
     val matchViewModelFactory = MatchViewModelFactory(matchRepository)
     val matchViewModel: MatchViewModel = viewModel(factory = matchViewModelFactory)
+    val userRepository = UserRepository(database.userDao())
+    val userViewModelFactory = UserViewModelFactory(userRepository)
+    val userViewModel: UserViewModel = viewModel(factory = userViewModelFactory)
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(key1 = Unit) {
@@ -72,6 +84,45 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
     }
 
     val newUser = if(lastMatches.isNotEmpty()) false else true
+
+
+
+    var hasCreatedMatch by remember { mutableStateOf(false) }
+    LaunchedEffect(key1 = userViewModel.loginUser) {
+        Log.d("HomePage", "Add match for user: ${userViewModel.loginUser}")
+        if (userViewModel.loginUser != null && !hasCreatedMatch) {
+            coroutineScope.launch(Dispatchers.IO) {
+                try {
+                    matchViewModel.getMatchCount(userViewModel.loginUser.toString())
+                    if (matchViewModel.matchCount.value == 0) {
+                        Log.d(
+                            "HomePage",
+                            "No matches found for user: ${userViewModel.loginUser}"
+                        )
+                        // Add an example match for the logged-in user
+                        val exampleMatch = Match(
+                            id = "0",
+                            user_id = userViewModel.loginUser.toString(),
+                            date = LocalDate.now()
+                                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                            ini_time = "00:00",
+                            end_time = "00:00",
+                            total_time = "60:00",
+                            away_corner_location = "0",
+                            home_corner_location = "0",
+                            kickoff_location = "0"
+                        )
+                        Log.d( "HomePage", "Adding example match for user: ${userViewModel.loginUser}" )
+                        matchViewModel.insertMatch(exampleMatch)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                hasCreatedMatch = true
+                Log.d("HomePage", "Match added for user: ${userViewModel.loginUser}")
+            }
+        }
+    }
 
     val scrollState = rememberScrollState()
     Column(
@@ -130,12 +181,17 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
                     color = white
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Row(modifier = modifier.fillMaxWidth()) {
+                Row(
+                    modifier = modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
                     Image(
                         painter = painterResource(id = R.drawable.pitch_color),
                         contentDescription = "Soccer Image",
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .size(250.dp)
                             .rotate(90f)
+                            .padding(0.dp)
                     )
                 }
             } else {
@@ -147,7 +203,7 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
                     modifier = Modifier.padding(horizontal = 32.dp)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                HeatmapChart(lastMatch.id)
+                //HeatmapChart(lastMatch.id)
             }
         }
 

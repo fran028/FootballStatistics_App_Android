@@ -47,10 +47,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
 
     fun getLoginUser() {
         viewModelScope.launch(Dispatchers.IO) {
-            val user = userRepository.getLoginUser()
-            withContext(Dispatchers.Main) {
-                _loginUser.value = user
-            }
+            _loginUser.value = userRepository.getLoginUser()
         }
     }
 

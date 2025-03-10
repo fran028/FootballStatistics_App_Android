@@ -1,5 +1,6 @@
 package com.example.footballstatistics_app_android.pages
 
+import HeatmapChart
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -48,7 +49,6 @@ import com.example.footballstatistics_app_android.Theme.red
 import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.components.ColorBar
-import com.example.footballstatistics_app_android.components.HeatmapChart
 import com.example.footballstatistics_app_android.components.StatBox
 import com.example.footballstatistics_app_android.components.ViewTitle
 import com.example.footballstatistics_app_android.data.AppDatabase
@@ -58,6 +58,9 @@ import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
 import androidx.compose.runtime.collectAsState
 import com.example.footballstatistics_app_android.Screen
+import com.example.footballstatistics_app_android.data.LocationRepository
+import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
+import com.example.footballstatistics_app_android.viewmodel.LocationViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -73,15 +76,29 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
     val matchRepository = MatchRepository(database.matchDao())
     val matchViewModelFactory = MatchViewModelFactory(matchRepository)
     val matchViewModel: MatchViewModel = viewModel(factory = matchViewModelFactory)
+    val locationRepository = LocationRepository(database.locationDao())
+    val locationViewModelFactory = LocationViewModelFactory(locationRepository)
+    val locationViewModel: LocationViewModel = viewModel(factory = locationViewModelFactory)
+
     val coroutineScope = rememberCoroutineScope()
 
     val match by matchViewModel.match.collectAsState(initial = null)
+    val totalDistance by locationViewModel.totalDistance.collectAsState(initial = 0.0)
+    val topSpeed by locationViewModel.topSpeed.collectAsState(initial = 0.0)
+    val averagePace by locationViewModel.averagePace.collectAsState(initial = 0.0)
     LaunchedEffect(match_id) {
         Log.d("MatchPage", "Fetching match with ID: $match_id")
         coroutineScope.launch(Dispatchers.IO) {
             matchViewModel.getMatch(match_id)
             Log.d("MatchPage", "Fetched match: $match")
+            locationViewModel.calculateTotalDistanceForMatch(match_id)
+            Log.d("MatchPage", "Calculated total distance: $totalDistance")
+            locationViewModel.calculateTopSpeedForMatch(match_id)
+            Log.d("MatchPage", "Calculated top speed: $topSpeed")
+            locationViewModel.calculateAveragePaceForMatch(match_id)
+            Log.d("MatchPage", "Calculated average pace: $averagePace")
         }
+
     }
 
     val currentMatch = match ?: matchViewModel.emptyMatch()
@@ -90,7 +107,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
 
     var velocitySelected by remember { mutableStateOf(false) }
     var distanceSelected by remember { mutableStateOf(true) }
-    var heartrateSelected by remember { mutableStateOf(false) }
+    var paceSelected by remember { mutableStateOf(false) }
     var chartName by remember { mutableStateOf("") }
 
     Column(
@@ -111,23 +128,24 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
             Column {
                 Text(
                     text = currentMatch.date,
-                    fontFamily = RobotoCondensed,
-                    fontSize = 40.sp,
+                    fontFamily = LeagueGothic,
+                    fontSize = 58.sp,
                     color = white,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = currentMatch.total_time,
-                    fontFamily = RobotoCondensed,
-                    fontSize = 38.sp,
+                    fontFamily = LeagueGothic,
+                    fontSize = 50.sp,
                     color = white,
                 )
             }
             Image(
                 painter = painterResource(id = R.drawable.pitch_color),
                 contentDescription = "Soccer Image",
-                modifier = Modifier.size(90.dp)
+                modifier = Modifier.size(120.dp)
             )
+
         }
 
 
@@ -143,13 +161,13 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
                 StatBox(
                     onclick = { velocitySelected = true
                                 distanceSelected = false
-                                heartrateSelected = false
+                                paceSelected = false
                                 chartName = "VELOCITY"
                     },
                     icon = R.drawable.speedometer,
                     text = "VELOCITY",
-                    value = "26 km/h",
-                    avg = "Avg: 15 km/h",
+                    value = "%.2f km/h".format(topSpeed),
+                    avg = "",
                     bgcolor = if(velocitySelected) blue else white,
                     textcolor = if(velocitySelected) blue else white,
                     height = 125.dp,
@@ -161,13 +179,13 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
                     onclick = {
                         velocitySelected = false
                         distanceSelected = true
-                        heartrateSelected = false
+                        paceSelected = false
                         chartName = "DISTANCE"
                     },
                     icon = R.drawable.sneaker,
                     text = "DISTANCE ",
-                    value = "7,3 km",
-                    avg = "9:48m/km",
+                    value = "%.2f km".format(totalDistance),
+                    avg = "",
                     bgcolor = if(distanceSelected) yellow else white,
                     textcolor = if(distanceSelected) yellow else white,
                     height = 125.dp,
@@ -178,18 +196,18 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
                     onclick = {
                         velocitySelected = false
                         distanceSelected = false
-                        heartrateSelected = true
-                        chartName = "HEARTRATE"
+                        paceSelected = true
+                        chartName = "RUNNING PACE"
                     },
-                    icon = R.drawable.cardiogram,
-                    text = "HEARTRATE ",
-                    value = "190 bpm",
-                    avg = "Avg: 169 bpm",
-                    bgcolor = if(heartrateSelected) red else white,
-                    textcolor = if(heartrateSelected) red else white,
+                    icon = R.drawable.pace,
+                    text = "PACE ",
+                    value = "%.2f km/h".format(averagePace),
+                    avg = "",
+                    bgcolor = if(paceSelected) green else white,
+                    textcolor = if(paceSelected) green else white,
                     height = 125.dp,
                     width = 100.dp,
-                    selected = heartrateSelected
+                    selected = paceSelected
                 )
             }
         }
@@ -204,17 +222,17 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         )
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 36.dp )){
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.Transparent)
-                    .border(width = 4.dp, color = white, shape = RoundedCornerShape(8.dp))
-                    .height(125.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                //HeatmapChart( match_id )
-            }
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .clip(RoundedCornerShape(8.dp))
+//                    .background(Color.Transparent)
+//                    .border(width = 4.dp, color = white, shape = RoundedCornerShape(8.dp))
+//                    .height(125.dp),
+//                contentAlignment = Alignment.Center
+//            ) {
+                HeatmapChart( match_id )
+            //}
         }
         Spacer(modifier = Modifier.height(16.dp))
         Text(

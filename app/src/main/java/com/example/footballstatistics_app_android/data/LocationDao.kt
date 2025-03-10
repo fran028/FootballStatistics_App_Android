@@ -21,7 +21,7 @@ interface LocationDao {
     @Query("SELECT * FROM locations WHERE id = :id")
     suspend fun getLocationById(id: String): Location?
 
-    @Query("SELECT * FROM locations WHERE match_id = :id")
+    @Query("SELECT * FROM locations WHERE match_id = :id ORDER BY timestamp ASC")
     suspend fun getLocationsByMatchId(id: String): List<Location>?
 
     suspend fun checkIfMatchHasLocation(id: String): Boolean {

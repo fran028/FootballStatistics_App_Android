@@ -66,6 +66,7 @@ import com.example.footballstatistics_app_android.viewmodel.UserViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -100,7 +101,8 @@ fun CalendarPage(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(black).verticalScroll(scrollState) ,
+            .background(black)
+            .verticalScroll(scrollState) ,
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
@@ -123,7 +125,7 @@ fun CalendarPage(
                         .width(40.dp)
                         .height(40.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background( white)
+                        .background(white)
                         .clickable { },
                     contentAlignment = Alignment.Center
                 ) {
@@ -147,7 +149,7 @@ fun CalendarPage(
                         .width(40.dp)
                         .height(40.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background( blue)
+                        .background(blue)
                         .clickable { },
                     contentAlignment = Alignment.Center
                 ) {
@@ -171,7 +173,7 @@ fun CalendarPage(
                         .width(40.dp)
                         .height(40.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background( gray)
+                        .background(gray)
                         .clickable { },
                     contentAlignment = Alignment.Center
                 ) {
@@ -243,7 +245,8 @@ fun CalendarPage(
                     fontFamily = LeagueGothic,
                     fontSize = 40.sp,
                     color = white,
-                    modifier = Modifier.padding(horizontal = 32.dp)
+                    modifier = Modifier
+                        .padding(horizontal = 32.dp)
                         .fillMaxWidth()
                         .align(Alignment.CenterHorizontally),
                     textAlign = TextAlign.Center
@@ -312,11 +315,13 @@ fun CalendarPage(
     }
 }
 
+
+
 @Composable
 fun MonthHeader(
     currentMonth: Calendar,
     onPreviousMonth: () -> Unit,
-    onNextMonth: () -> Unit
+    onNextMonth: () -> Unit,
 ) {
     val monthName = SimpleDateFormat("MMMM yyyy", java.util.Locale.getDefault()).format(currentMonth.time)
     Box(
@@ -369,6 +374,7 @@ fun CalendarGrid(
     firstDayOfMonth.set(Calendar.DAY_OF_MONTH, 1)
     val firstDayOfWeek = firstDayOfMonth.get(Calendar.DAY_OF_WEEK)
     val days = (1..daysInMonth).toList()
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(7),
@@ -387,11 +393,12 @@ fun CalendarGrid(
         items(items = days) { day ->
             val date = firstDayOfMonth.clone() as Calendar
             date.set(Calendar.DAY_OF_MONTH, day)
+            val formattedDate = dateFormat.format(date.time)
             Day(
                 day = day,
                 isSelected = isSameDay(date.time, selectedDate),
                 onDateSelected = { onDateSelected(date.time) },
-                hasMatch = matchViewModel.dayHasMatch(date.time.toString(), userViewModel.loginUser.toString()),
+                hasMatch = matchViewModel.dayHasMatch(formattedDate, userViewModel.loginUser.toString()),
                 isToday = isSameDay(date.time, Date())
             )
         }
@@ -406,7 +413,7 @@ fun Day(day: Int, isSelected: Boolean, onDateSelected: () -> Unit, hasMatch: Boo
             .width(40.dp)
             .height(40.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background( if (isSelected) white else if(hasMatch) black else if(isToday) gray else Color.Transparent)
+            .background(if (isSelected) white else if (hasMatch) black else if (isToday) gray else Color.Transparent)
             .clickable { onDateSelected() },
         contentAlignment = Alignment.Center
     ) {
@@ -474,14 +481,3 @@ fun isSameDay(date1: java.util.Date, date2: java.util.Date?): Boolean {
             cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
             cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
 }
-
-//fun dayHasMatch(date1: java.util.Date): Boolean{
-//    if (date1 == null) return false
-//    val cal1 = Calendar.getInstance()
-//    val cal2 = Calendar.getInstance()
-//    cal1.time = date1
-//    cal2.time = Date()
-//    return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-//            cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
-//            cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
-//}

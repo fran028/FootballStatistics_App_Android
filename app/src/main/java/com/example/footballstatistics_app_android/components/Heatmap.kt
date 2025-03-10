@@ -1,17 +1,20 @@
-package com.example.footballstatistics_app_android.components
-
 import android.graphics.BlurMaskFilter
 import android.graphics.Paint
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -29,53 +32,95 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.footballstatistics_app_android.R
 import com.example.footballstatistics_app_android.Theme.black
 import com.example.footballstatistics_app_android.Theme.blue
+import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.data.AppDatabase
 import com.example.footballstatistics_app_android.data.Location
-import com.example.footballstatistics_app_android.data.Match
+import com.example.footballstatistics_app_android.data.LocationRepository
+import com.example.footballstatistics_app_android.data.MatchRepository
+import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
+import com.example.footballstatistics_app_android.viewmodel.LocationViewModelFactory
+import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
+import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.text.split
+import kotlin.text.toDouble
 
 @Composable
-fun HeatmapChart(match_id: String) {
+fun HeatmapChart(match_id: String, color: Color = blue) {
     val context = LocalContext.current
     val database = AppDatabase.getDatabase(context)
     val scope = rememberCoroutineScope()
-    var locationDataList by remember { mutableStateOf<List<Location>>(emptyList()) }
-    var topLeftLat by remember { mutableDoubleStateOf(Double.MIN_VALUE) }
-    var topLeftLon by remember { mutableDoubleStateOf(Double.MIN_VALUE) }
-    var bottomRightLat by remember { mutableDoubleStateOf(Double.MIN_VALUE) }
-    var bottomRightLon by remember { mutableDoubleStateOf(Double.MIN_VALUE) }
-    var middleLat by remember { mutableDoubleStateOf(Double.MIN_VALUE) }
-    var middleLon by remember { mutableDoubleStateOf(Double.MIN_VALUE) }
-    var matchData: Match? by remember { mutableStateOf(null) }
+
+    val locationRepository = LocationRepository(database.locationDao())
+    val locationViewModelFactory = LocationViewModelFactory(locationRepository)
+    val locationViewModel: LocationViewModel = viewModel(factory = locationViewModelFactory)
+
+    val matchRepository = MatchRepository(database.matchDao())
+    val matchViewModelFactory = MatchViewModelFactory(matchRepository)
+    val matchViewModel: MatchViewModel = viewModel(factory = matchViewModelFactory)
+
+    var minLat by remember { mutableDoubleStateOf(Double.MAX_VALUE) }
+    var maxLat by remember { mutableDoubleStateOf(Double.MIN_VALUE) }
+    var minLon by remember { mutableDoubleStateOf(Double.MAX_VALUE) }
+    var maxLon by remember { mutableDoubleStateOf(Double.MIN_VALUE) }
     var isLoading by remember { mutableStateOf(true) }
-    LaunchedEffect(key1 = true) {
-        scope.launch {
-            if(database.locationDao().checkIfMatchHasLocation(match_id)) {
-                locationDataList = database.locationDao().getLocationsByMatchId(match_id)!!
-                matchData = database.matchDao().getMatchById(match_id)
-                topLeftLat = matchData!!.away_corner_location.split(",")[0].toDouble()
-                topLeftLon = matchData!!.away_corner_location.split(",")[1].toDouble()
-                bottomRightLat = matchData!!.home_corner_location.split(",")[0].toDouble()
-                bottomRightLon = matchData!!.home_corner_location.split(",")[1].toDouble()
-                middleLat = matchData!!.kickoff_location .split(",")[0].toDouble()
-                middleLon = matchData!!.kickoff_location .split(",")[1].toDouble()
-                isLoading = false
+
+    val match by matchViewModel.match.collectAsState(initial = null)
+    val locationDataList by locationViewModel.locations.collectAsState(initial = emptyList())
+    var hasLocation by remember { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = Unit) {
+        scope.launch(Dispatchers.IO) {
+            Log.d("HeatmapChart", "Getting locations for match: $match_id")
+            hasLocation = locationViewModel.checkIfMatchHasLocation(match_id)
+            if (hasLocation) {
+                locationViewModel.getLocationsByMatchId(match_id)
+                Log.d("HeatmapChart", "Locations gotten for match: $match_id")
+                matchViewModel.getMatch(match_id)
+            } else {
+                Log.d("HeatmapChart", "No locations found for match: $match_id")
             }
         }
     }
+
+    LaunchedEffect(key1 = locationDataList, key2 = match) {
+        if (match != null) {
+            minLat = match!!.away_corner_location.split(",")[0].toDouble()
+            maxLat = match!!.home_corner_location.split(",")[0].toDouble()
+            minLon = match!!.home_corner_location.split(",")[1].toDouble()
+            maxLon = match!!.away_corner_location.split(",")[1].toDouble()
+        } else {
+            if(locationDataList.isNotEmpty()) {
+                locationDataList.forEach { location ->
+                    if (location != null) {
+                        val lat = location.latitude.toDouble()
+                        val lon = location.longitude.toDouble()
+                        minLat = minOf(minLat, lat)
+                        maxLat = maxOf(maxLat, lat)
+                        minLon = minOf(minLon, lon)
+                        maxLon = maxOf(maxLon, lon)
+                    }
+                }
+            }
+        }
+        Log.d("HeatmapChart", "Pitch locations set minLat: $minLat, maxLat: $maxLat, minLon: $minLon, maxLon: $maxLon")
+        isLoading = false
+    }
+
     if(isLoading){
+        Log.d("HeatmapChart", "Loading...")
         NoDataAvailable("Loading...")
     } else {
         if (locationDataList.isNotEmpty()) {
-            CustomHeatmap(locationDataList, topLeftLon, topLeftLat, bottomRightLon, bottomRightLat, middleLat, middleLon)
+            Log.d("HeatmapChart", "Drawing heatmap for match: $match_id")
+            CustomHeatmap(locationDataList, minLat, maxLat, minLon, maxLon, color)
         } else {
+            Log.d("HeatmapChart", "No available data for match: $match_id")
             NoDataAvailable("No available data")
         }
     }
@@ -90,159 +135,149 @@ fun NoDataAvailable(text: String) {
     ){
         Text(
             text = text,
-            color = Color.White,
+            color = white,
             modifier = Modifier.padding(16.dp)
         )
     }
 }
 
+
 @Composable
 fun CustomHeatmap(
-    locationDataList: List<Location>,
-    topLeftLat: Double,
-    topLeftLon: Double,
-    bottomRightLat: Double,
-    bottomRightLon: Double,
-    middleLat: Double,
-    middleLon: Double,
+    locationDataList: List<Location?>,
+    minLat: Double,
+    maxLat: Double,
+    minLon: Double,
+    maxLon: Double,
+    color: Color
 ) {
+    Log.d("CustomHeatmap", "Drawing heatmap")
+    Log.d("CustomHeatmap", "Location data size: ${locationDataList.size}")
+    Log.d("CustomHeatmap", "MinLat: $minLat, MaxLat: $maxLat")
+    Log.d("CustomHeatmap", "MinLon: $minLon, MaxLon: $maxLon")
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .padding(16.dp)
+            .fillMaxWidth()
+            .height(264.dp)
+            .background(black)
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.pitch_transparent),
-            contentDescription = "Soccer Image",
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center),
-            contentScale = ContentScale.FillWidth
-        )
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        Canvas(modifier = Modifier.matchParentSize()) {
             val canvasWidth = size.width
             val canvasHeight = size.height
+            Log.d("CustomHeatmap", "Canvas dimensions: $canvasWidth x $canvasHeight")
+            // Define pitch dimensions using max and min values
+            val pitchWidth = maxLon - minLon
+            val pitchHeight = maxLat - minLat
 
-            // Calculate pitch dimensions
-            val pitchDimensions = calculatePitchDimensions(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon, middleLat, middleLon)
-            val pitchWidth = pitchDimensions.first
-            val pitchHeight = pitchDimensions.second
+            Log.d("CustomHeatmap", "Pitch dimensions: $pitchWidth x $pitchHeight")
 
             val pitchPoints = locationDataList.map { location ->
-                mapGeoToPitch(
-                    location.latitude,
-                    location.longitude,
-                    topLeftLon,
-                    topLeftLat,
-                    bottomRightLat,
-                    bottomRightLon,
-                    middleLat,
-                    middleLon,
+                val latitude = location?.latitude?.toDouble() ?: 0.00
+                val longitude = location?.longitude?.toDouble() ?: 0.00
+                mapToPitch(
+                    latitude,
+                    longitude,
+                    minLon,
+                    minLat,
                     pitchWidth,
                     pitchHeight
                 )
             }
+            Log.d("CustomHeatmap", "Pitch points size: ${pitchPoints.size}")
+            //pitchPoints.forEach { Log.d("CustomHeatmap", "Pitch point: ${it.x}, ${it.y}") }
+            Log.d("CustomHeatmap", "Pitch points Set")
 
-            // 2. Density Calculation
-            val gridSize = 5 // Size of each grid cell in pitch units (e.g., 5 meters)
+            val gridCellWidth = 20 // Set the grid cell width in pixels
+            val gridCellHeight = 20 // Set the grid cell height in pixels
+
+            // Density Calculation
+            val gridSize = 20.0 // Size of each grid cell in pitch units (e.g., 5 meters)
             val grid = mutableMapOf<Pair<Int, Int>, Int>()
             var maxDensity = 0
-
             pitchPoints.forEach { point ->
-                val gridX = (point.x / gridSize).toInt()
-                val gridY = (point.y / gridSize).toInt()
+                // Normalize point to the canvas size
+                val normalizedX = point.x / pitchWidth
+                val normalizedY = point.y / pitchHeight
+
+                // Apply the correct canvas size
+                val canvasX = normalizedX * canvasWidth
+                val canvasY = canvasHeight - normalizedY * canvasHeight //Invert the Y axis correctly.
+
+                // Calculate the correct grid X and Y for the canvas
+                val gridX = (canvasX / gridSize).toInt()
+                val gridY = (canvasY / gridSize).toInt()
+                //Log.d("CustomHeatmap", "Point coordinates: $gridX, $gridY")
+
                 val density = grid.getOrDefault(Pair(gridX, gridY), 0) + 1
                 grid[Pair(gridX, gridY)] = density
                 maxDensity = if (density > maxDensity) density else maxDensity
             }
-
+            Log.d("CustomHeatmap", "Pitch points size: ${pitchPoints.size}")
+            Log.d("CustomHeatmap", "Max density: $maxDensity")
+            // Calculate the blur radius
+            val calculatedBlurRadius = (gridSize/20).toFloat()
+            Log.d("CustomHeatmap", "Calculated Blur radius: $calculatedBlurRadius")
+            //Check if the calculated radius is valid.
+            val blurRadius = if (calculatedBlurRadius.isFinite() && calculatedBlurRadius >= 0.5f) {
+                calculatedBlurRadius
+            } else {
+                Log.w("CustomHeatmap", "Invalid blur radius: $calculatedBlurRadius, using default radius.")
+                5f // Use a default radius.
+            }
+            Log.d("CustomHeatmap", "Blur radius: $blurRadius")
             drawIntoCanvas { canvas ->
                 val nativeCanvas = canvas.nativeCanvas
                 val nativePaint = Paint().apply {
-                    maskFilter = BlurMaskFilter(gridSize.toFloat(), BlurMaskFilter.Blur.NORMAL)
+                    maskFilter = BlurMaskFilter(blurRadius, BlurMaskFilter.Blur.NORMAL)
                     isAntiAlias = true
                 }
-
+                Log.d("CustomHeatmap", "Drawing heatmap")
                 grid.forEach { (gridCoord) ->
                     val gridX = gridCoord.first
                     val gridY = gridCoord.second
-                    val color = blue
+                    val density = grid[gridCoord] ?: 0
 
                     nativePaint.color = color.toArgb()
-                    nativePaint.alpha = (maxDensity.toFloat()).toInt()
+                    nativePaint.alpha = (255 * (density.toFloat() / maxDensity.toFloat())).toInt()
 
-                    val rectLeft = (gridX * gridSize * (canvasWidth / pitchWidth)).toFloat()
-                    val rectTop = (gridY * gridSize * (canvasHeight / pitchHeight)).toFloat()
-                    val rectRight = rectLeft + (gridSize * (canvasWidth / pitchWidth)).toFloat()
-                    val rectBottom = rectTop + (gridSize * (canvasHeight / pitchHeight)).toFloat()
+                    val rectLeft = (gridX * gridSize).toFloat()
+                    val rectTop = (gridY * gridSize).toFloat()
+                    val rectRight = rectLeft + gridSize
+                    val rectBottom = rectTop + gridSize
 
                     nativeCanvas.drawRect(
                         rectLeft,
                         rectTop,
-                        rectRight,
-                        rectBottom,
+                        rectRight.toFloat(),
+                        rectBottom.toFloat(),
                         nativePaint
                     )
                 }
             }
+            Log.d("CustomHeatmap", "Heatmap drawn")
         }
+
+        Image(
+            painter = painterResource(id = R.drawable.pitch_transparent),
+            contentDescription = "Soccer Pitch Image",
+            modifier = Modifier.matchParentSize(), // Fills the parent (Box)
+            contentScale = ContentScale.FillBounds // Scales to fill bounds
+        )
     }
 }
 
-fun mapGeoToPitch(
-    latitude: String,
-    longitude: String,
-    topLeftLat: Double,
-    topLeftLon: Double,
-    bottomRightLat: Double,
-    bottomRightLon: Double,
-    middleLat: Double,
-    middleLon: Double,
-    pitchWidth: Double,
-    pitchHeight: Double,
+fun mapToPitch(
+    latitude: Double, longitude: Double,
+    minLon: Double, minLat: Double,
+    pitchWidth: Double, pitchHeight: Double,
 ): Offset {
-
-    // Calculate differences in latitude and longitude
-    val latDiff = topLeftLat - bottomRightLat
-    val lonDiff = bottomRightLon - topLeftLon
-
-    // Calculate the offset from the top-left corner
-    val latOffset = latitude.toDouble() - topLeftLat
-    val lonOffset = longitude.toDouble() - topLeftLon
-
-    // Map the offsets to pitch coordinates
-    val pitchX = (lonOffset / lonDiff) * pitchWidth
-    val pitchY = (latOffset / latDiff) * pitchHeight
+    // Normalize values to 0-1 range
+    val normalizedLon = (longitude - minLon) / pitchWidth
+    val normalizedLat = (latitude - minLat) / pitchHeight
+    // Map to pitch dimensions
+    val pitchX = normalizedLon * pitchWidth
+    //Invert the Y axis
+    val pitchY = pitchHeight - normalizedLat * pitchHeight
 
     return Offset(pitchX.toFloat(), pitchY.toFloat())
-}
-
-fun calculatePitchDimensions(topLeftLat: Double, topLeftLon: Double, bottomRightLat: Double, bottomRightLon: Double, middleLat: Double, middleLon: Double): Pair<Double, Double> {
-
-    // Calculate distances using the Haversine formula
-    val diagonalDistance = haversine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon)
-    val topLeftToMiddleDistance = haversine(topLeftLat, topLeftLon, middleLat, middleLon)
-    val middleToBottomRightDistance = haversine(middleLat, middleLon, bottomRightLat, bottomRightLon)
-
-    // Approximate pitch dimensions (assuming a rectangular pitch)
-    // Using the Pythagorean theorem and the distances to estimate width and height
-    val pitchWidth = (topLeftToMiddleDistance + middleToBottomRightDistance) / 2
-    val pitchHeight = sqrt(diagonalDistance * diagonalDistance - pitchWidth * pitchWidth)
-
-    return Pair(pitchWidth, pitchHeight)
-}
-
-fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-    val r = 6371.0 // Radius of the Earth in kilometers
-
-    val dLat = Math.toRadians(lat2 - lat1)
-    val dLon = Math.toRadians(lon2 - lon1)
-
-    val a = sin(dLat / 2) * sin(dLat / 2) +
-            cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
-            sin(dLon / 2) * sin(dLon / 2)
-    val c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
-    return r * c
 }

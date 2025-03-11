@@ -58,6 +58,9 @@ import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
 import androidx.compose.runtime.collectAsState
 import com.example.footballstatistics_app_android.Screen
+import com.example.footballstatistics_app_android.charts.DistanceLineChart
+import com.example.footballstatistics_app_android.charts.TimeInSideChart
+import com.example.footballstatistics_app_android.charts.TimelineChart
 import com.example.footballstatistics_app_android.data.LocationRepository
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModelFactory
@@ -236,7 +239,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "CHART - HEATMAP",
+            text = "CHART - TIME IN SIDE",
             fontFamily = RobotoCondensed,
             fontSize = 32.sp,
             color = white,
@@ -244,18 +247,35 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         )
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 36.dp )){
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.Transparent)
-                    .border(width = 4.dp, color = white, shape = RoundedCornerShape(8.dp))
-                    .height(125.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                //HeatmapChart( match_id )
-            }
+            TimeInSideChart(match_id, blue, green)
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "CHART - TIMELINE",
+            fontFamily = RobotoCondensed,
+            fontSize = 32.sp,
+            color = white,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Column (Modifier.padding(horizontal = 36.dp )){
+            TimelineChart(match_id, blue)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "CHART - DISTANCE PER MINUTE",
+            fontFamily = RobotoCondensed,
+            fontSize = 32.sp,
+            color = white,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Column (Modifier.padding(horizontal = 36.dp )){
+            DistanceLineChart(match_id, blue)
+        }
+
+
+
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "STATISTICS (Example)",

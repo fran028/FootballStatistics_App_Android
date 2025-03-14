@@ -303,8 +303,12 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
 }
 
 fun GetNextPosition(latitude: Double, longitude: Double, maxLatitude: Double, maxLongitude: Double):Pair<Double, Double> {
-    val randomLatitude = Random.nextDouble(latitude - 1, latitude + 1)
-    val randomLongitude = Random.nextDouble(longitude - 1, longitude + 1)
+    var randomLatitude = latitude
+    var randomLongitude = longitude
+    do{
+        randomLatitude = Random.nextDouble(latitude - 1, latitude + 1)
+        randomLongitude = Random.nextDouble(longitude - 1, longitude + 1)
+    } while (randomLatitude > 0.0 && randomLatitude < maxLatitude && randomLongitude > 0.0 && randomLongitude < maxLongitude)
     return Pair(randomLatitude, randomLongitude)
 }
 

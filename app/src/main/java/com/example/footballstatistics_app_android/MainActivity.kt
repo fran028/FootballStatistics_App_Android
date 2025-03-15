@@ -1,7 +1,9 @@
 package com.example.footballstatistics_app_android
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -69,6 +71,9 @@ import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.Theme.blue
 import com.example.footballstatistics_app_android.Theme.gray
+import android.content.Context
+import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.content.pm.PackageManager.PERMISSION_DENIED
 
 data class BottomNavigationItem(
     val title: String,
@@ -82,19 +87,33 @@ data class BottomNavigationItem(
 class MainActivity : ComponentActivity() {
     private var isBluetoothConnected = mutableStateOf(false)
     lateinit var container: AppContainer
+    private lateinit var dataTransferReceiver: DataTransferReceiver
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d("MainActivity", "onCreate called")
         super.onCreate(savedInstanceState)
 
-        container = AppContainer(this)
+        container = (applicationContext as FootballStatisticsApplication).container
 
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         checkBluetoothPermissions()
 
-        val serviceIntent = Intent(this, DataLayerListenerService::class.java)
+        //Receiver creation
+        /*dataTransferReceiver = DataTransferReceiver {
+            Log.d("MainActivity", "Data transfer complete - recreating Activity")
+            runOnUiThread {
+                recreate()
+            }
+        }*/
+
+        //val intentFilter = IntentFilter(Constants.DATA_TRANSFER_COMPLETE)
+        //registerReceiver(dataTransferReceiver, intentFilter)
+
+        val serviceIntent = Intent(this, DataListenerService::class.java)
         startService(serviceIntent)
 
         setContent {
@@ -123,25 +142,28 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(dataTransferReceiver)
+    }
 
     private fun checkBluetoothPermissions() {
         if (ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED ||
+            ) != PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.BLUETOOTH_SCAN
-            ) != PackageManager.PERMISSION_GRANTED ||
+            ) != PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED ||
+            ) != PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+            ) != PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
                 this,
@@ -163,7 +185,7 @@ class MainActivity : ComponentActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PERMISSION_GRANTED) {
                 Log.d("MainActivity", "Permissions granted")
             } else {
                 Log.w("MainActivity", "Permissions denied")

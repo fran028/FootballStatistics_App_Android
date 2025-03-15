@@ -2,18 +2,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
-
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
 
     <application
+        android:name=".FootballStatisticsApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/logo"
-        android:label="Football Statistics"
+        android:label="@string/app_name"
         android:roundIcon="@mipmap/logo_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.FootballStatistics_App_Android"
@@ -21,7 +24,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.FootballStatistics_App_Android">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,15 +31,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-<!--        <service-->
-<!--            android:name=".DataTransferService"-->
-<!--            android:foregroundServiceType="dataSync"-->
-<!--            android:exported="false" />-->
+
         <service
-            android:name=".DataLayerListenerService"
-            android:exported="true">
+            android:name=".DataListenerService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice"
+            tools:ignore="ExportedService">
             <intent-filter>
-                <action android:name="BIND_LISTENER" />
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data android:scheme="wear" android:host="*" />
             </intent-filter>
         </service>
     </application>

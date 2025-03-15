@@ -58,7 +58,7 @@ import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
 import androidx.compose.runtime.collectAsState
 import com.example.footballstatistics_app_android.Screen
-import com.example.footballstatistics_app_android.charts.DistanceLineChart
+//import com.example.footballstatistics_app_android.charts.DistanceLineChart
 import com.example.footballstatistics_app_android.charts.TimeInSideChart
 import com.example.footballstatistics_app_android.charts.TimelineChart
 import com.example.footballstatistics_app_android.data.LocationRepository
@@ -271,7 +271,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         )
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 36.dp )){
-            DistanceLineChart(match_id, blue)
+            //DistanceLineChart(match_id, blue)
         }
 
 

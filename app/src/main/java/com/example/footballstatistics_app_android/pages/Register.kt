@@ -464,7 +464,7 @@ fun RegisterPage(navController: NavController){
                                     height = heightString.toInt(),
                                     weight = weightString.toInt(),
                                     date = formattedDate,
-                                    id = ""
+                                    id = "0"
                                 )
 
                                 // Insert the user into the database

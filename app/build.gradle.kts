@@ -12,7 +12,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.footballstatistics_app_android"
+        applicationId = "com.example.footballstatisticsapp"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -94,7 +94,8 @@ dependencies {
 
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
-    implementation("com.github.madrapps:plot:1.0.3")
+//    implementation("com.github.madrapps:plot:1.0.3")
+    implementation("com.github.madrapps:plot:0.1.1")
 
     implementation("com.google.android.gms:play-services-wearable:19.0.0")
     implementation("com.google.code.gson:gson:2.10.1")

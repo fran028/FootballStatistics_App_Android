@@ -123,6 +123,8 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
                             // Add an example match for the logged-in user
                             val maxLatitude = 60.0
                             val maxLongitude = 100.0
+                            val minLatitude = 0.0
+                            val minLongitude = 0.0
                             val exampleMatch = Match(
                                 id = "0",
                                 user_id = loginUser!!.id,
@@ -131,8 +133,8 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
                                 ini_time = "00:00",
                                 end_time = "00:00",
                                 total_time = "60:00",
-                                away_corner_location = "0.00,$maxLongitude",
-                                home_corner_location = "$maxLatitude,0.00",
+                                away_corner_location = "$minLatitude,$maxLongitude",
+                                home_corner_location = "$maxLatitude,$minLongitude",
                                 kickoff_location = "${maxLatitude / 2},${maxLongitude / 2}"
                             )
                             Log.d(
@@ -144,34 +146,37 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
                             val matchtime = 60
                             val matchtimeseconds = matchtime * 60
                             Log.d("HomePage", "Adding locations for user: ${loginUser.id}")
-
                             var prevPosition = Pair(maxLatitude / 2, maxLongitude / 2)
                             for (i in 1..matchtimeseconds) {
-                                val nextposition = GetNextPosition(
-                                    prevPosition.first,
-                                    prevPosition.second,
-                                    maxLatitude,
-                                    maxLongitude
-                                )
+                                Log.d("HomePage", "Adding location $i for user: ${loginUser.id}")
+                                Log.d("HomePage", "Latitud: ${prevPosition.second}, Longitud: ${prevPosition.first}")
                                 val location = Location(
                                     id = i,
-                                    latitude = generateRandomLatitudeString(maxLatitude),
-                                    longitude = generateRandomLongitudeString(maxLongitude),
+                                    latitude = prevPosition.first.toString(),
+                                    longitude = prevPosition.second.toString(),
                                     match_id = "0",
                                     timestamp = i.toString()
 
                                 )
+                                val nextposition = GetNextPosition(
+                                    prevPosition.first,
+                                    prevPosition.second,
+                                    maxLatitude,
+                                    maxLongitude,
+                                    minLatitude,
+                                    minLongitude
+                                )
                                 prevPosition = nextposition
-                                //Log.d( "HomePage", "Location: ${location.latitude}, ${location.longitude}" )
                                 locationViewModel.insertLocation(location)
+                                Log.d("HomePage", "Location $i added for user: ${loginUser.id}")
                             }
-                            Log.d("HomePage", "Locations added for user: ${loginUser!!.id}")
+                            Log.d("HomePage", "Locations added for user: ${loginUser.id}")
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
                     hasCreatedMatch = true
-                    Log.d("HomePage", "Match added for user: ${loginUser!!.id}")
+                    Log.d("HomePage", "Match added for user: ${loginUser.id}")
 
                 }
             }
@@ -302,14 +307,23 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
     }
 }
 
-fun GetNextPosition(latitude: Double, longitude: Double, maxLatitude: Double, maxLongitude: Double):Pair<Double, Double> {
-    var randomLatitude = latitude
-    var randomLongitude = longitude
-    do{
-        randomLatitude = Random.nextDouble(latitude - 1, latitude + 1)
-        randomLongitude = Random.nextDouble(longitude - 1, longitude + 1)
-    } while (randomLatitude > 0.0 && randomLatitude < maxLatitude && randomLongitude > 0.0 && randomLongitude < maxLongitude)
-    return Pair(randomLatitude, randomLongitude)
+fun GetNextPosition(latitude: Double, longitude: Double, maxLatitude: Double, maxLongitude: Double, minLatitude: Double, minLongitude: Double):Pair<Double, Double> {
+    var newLatitude = Random.nextDouble(latitude - 2, latitude + 2)
+    var newLongitude = Random.nextDouble(longitude - 2, longitude + 2)
+    var randomLatitude = newLatitude
+    var randomLongitude = newLongitude
+    while (
+        randomLatitude < minLatitude ||
+        randomLatitude > maxLatitude ||
+        randomLongitude < minLongitude ||
+        randomLongitude > maxLongitude
+    ) {
+        randomLatitude = Random.nextDouble(newLatitude - 2, newLatitude + 2)
+        randomLongitude = Random.nextDouble(newLongitude - 2, newLongitude + 2)
+    }
+    newLatitude = randomLatitude
+    newLongitude = randomLongitude
+    return Pair(newLatitude, newLongitude)
 }
 
 fun generateRandomLatitudeString(maxValue: Double): String {

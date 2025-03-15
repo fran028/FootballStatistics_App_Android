@@ -30,9 +30,9 @@ import com.example.footballstatistics_app_android.data.Location
 import com.example.footballstatistics_app_android.data.LocationRepository
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModelFactory
-import com.madrapps.plot.line.DataPoint
-import com.madrapps.plot.line.LineGraph
-import com.madrapps.plot.line.LinePlot
+//import com.madrapps.plot.line.DataPoint
+//import com.madrapps.plot.line.LineGraph
+//import com.madrapps.plot.line.LinePlot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -110,11 +110,11 @@ fun LineChartCompose(locations: List<Location?>, color: Color) {
 
         // Create the list of DataPoints
         val dataPoints = distanceData.map { (minute, distance) ->
-            DataPoint(minute.toFloat(), distance.toFloat())
+            //DataPoint(minute.toFloat(), distance.toFloat())
         }
 
         // LineChart from Compose Charts
-        LineChart(
+        /*LineChart(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(264.dp),
@@ -122,7 +122,7 @@ fun LineChartCompose(locations: List<Location?>, color: Color) {
                 listOf(dataPoints),
                 lineColor = color,
             ),
-        )
+        )*/
     }
 }
 fun calculateDistancePerMinute(locations: List<Location?>): Map<Int, Double> {

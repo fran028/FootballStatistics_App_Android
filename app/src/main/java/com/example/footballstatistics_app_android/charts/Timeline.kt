@@ -49,7 +49,7 @@ import kotlin.io.path.moveTo
 import kotlin.text.toFloat
 
 @Composable
-fun TimelineChart(match_id: String, color: Color = blue) {
+fun TimelineChart(match_id: Int, color: Color = blue) {
     val TAG = "TimelineChart"
     val context = LocalContext.current
     val database = AppDatabase.getDatabase(context)
@@ -76,11 +76,11 @@ fun TimelineChart(match_id: String, color: Color = blue) {
     LaunchedEffect(key1 = Unit) {
         scope.launch(Dispatchers.IO) {
             Log.d(TAG, "Getting locations for match: $match_id")
-            hasLocation = locationViewModel.checkIfMatchHasLocation(match_id)
+            hasLocation = locationViewModel.checkIfMatchHasLocation(match_id.toString())
             if (hasLocation) {
-                locationViewModel.getLocationsByMatchId(match_id)
+                locationViewModel.getLocationsByMatchId(match_id.toString())
                 Log.d(TAG, "Locations gotten for match: $match_id")
-                matchViewModel.getMatch(match_id)
+                matchViewModel.getMatch(match_id.toInt())
             } else {
                 Log.d(TAG, "No locations found for match: $match_id")
             }

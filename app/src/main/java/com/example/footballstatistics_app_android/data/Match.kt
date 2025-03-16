@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "matchs")
 data class Match(
-    @PrimaryKey val id: String,
+    @PrimaryKey(autoGenerate = true) val id: Int,
     @ColumnInfo(name = "user_id") val user_id: String,
     @ColumnInfo(name = "date") val date: String,
     @ColumnInfo(name = "ini_time") val ini_time: String,
@@ -15,4 +15,5 @@ data class Match(
     @ColumnInfo(name = "away_corner_location") val away_corner_location: String,
     @ColumnInfo(name = "home_corner_location") val home_corner_location: String,
     @ColumnInfo(name = "kickoff_location") val kickoff_location: String,
+    @ColumnInfo(name = "isExample") val isExample: Boolean
 )

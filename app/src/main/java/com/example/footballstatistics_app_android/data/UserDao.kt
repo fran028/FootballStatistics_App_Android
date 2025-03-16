@@ -20,7 +20,7 @@ interface UserDao {
     suspend fun delete(user: User)
 
     @Query("SELECT * FROM users WHERE id = :id")
-    fun getUser(id: String): Flow<User>
+    fun getUser(id: Int): Flow<User>
 
     @Query("SELECT * FROM users WHERE username = :username")
     suspend fun getUserByUsername(username: String): User?
@@ -32,7 +32,7 @@ interface UserDao {
     suspend fun getUserByUsernameAndPassword(username: String, password: String): User?
 
     @Query("UPDATE users SET isLoggedIn = 1 WHERE id = :userId")
-    suspend fun updateLoginStatus(userId: String)
+    suspend fun updateLoginStatus(userId: Int)
 
     @Query("UPDATE users SET isLoggedIn = 0")
     suspend fun logOutUsers()

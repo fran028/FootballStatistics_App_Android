@@ -109,7 +109,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
 
 
     val user = getUser ?: User(
-        id = "",
+        id = 0,
         username = "",
         password = "",
         fullName = "",

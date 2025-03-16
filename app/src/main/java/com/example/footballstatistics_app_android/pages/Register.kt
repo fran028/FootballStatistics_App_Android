@@ -1,7 +1,10 @@
 package com.example.footballstatistics_app_android.pages
 
+import android.os.Build
+import android.util.Log
 import android.widget.Space
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -59,16 +62,24 @@ import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.data.AppDatabase
+import com.example.footballstatistics_app_android.data.LocationRepository
+import com.example.footballstatistics_app_android.data.MatchRepository
 import com.example.footballstatistics_app_android.data.User
 import com.example.footballstatistics_app_android.data.UserRepository
+import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
+import com.example.footballstatistics_app_android.viewmodel.LocationViewModelFactory
+import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
+import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
 import com.example.footballstatistics_app_android.viewmodel.UserViewModel
 import com.example.footballstatistics_app_android.viewmodel.UserViewModelFactory
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.text.isNotBlank
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterPage(navController: NavController){
@@ -92,6 +103,14 @@ fun RegisterPage(navController: NavController){
     val viewModelFactory = UserViewModelFactory(userRepository)
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory)
     val coroutineScope = rememberCoroutineScope()
+
+    val matchRepository = MatchRepository(appDatabase.matchDao())
+    val matchViewModelFactory = MatchViewModelFactory(matchRepository)
+    val matchViewModel: MatchViewModel = viewModel(factory = matchViewModelFactory)
+
+    val locationRepository = LocationRepository(appDatabase.locationDao())
+    val locationViewModelFactory = LocationViewModelFactory(locationRepository)
+    val locationViewModel: LocationViewModel = viewModel(factory = locationViewModelFactory)
 
     Box(modifier = Modifier
         .fillMaxSize() ) {
@@ -223,7 +242,8 @@ fun RegisterPage(navController: NavController){
             )
             Spacer(modifier = Modifier.size(20.dp))
             Row (
-                modifier = Modifier.width(350.dp)
+                modifier = Modifier
+                    .width(350.dp)
                     .height(50.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically) {
@@ -275,7 +295,8 @@ fun RegisterPage(navController: NavController){
                 Button(
                     onClick = { showDatePickerDialog = true },
                     modifier = Modifier
-                        .fillMaxSize().padding(0.dp),
+                        .fillMaxSize()
+                        .padding(0.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = blue,
@@ -464,12 +485,11 @@ fun RegisterPage(navController: NavController){
                                     height = heightString.toInt(),
                                     weight = weightString.toInt(),
                                     date = formattedDate,
-                                    id = "0"
+                                    id = 0
                                 )
 
                                 // Insert the user into the database
                                 userViewModel.insertUser(newUser)
-
                                 // Show a success message
                                 Toast.makeText(
                                     context,
@@ -477,8 +497,34 @@ fun RegisterPage(navController: NavController){
                                     Toast.LENGTH_SHORT
                                 ).show()
 
-                                // Optionally, navigate to another screen or clear the fields
-                                // navController.navigate("some_other_screen")
+                                val registeredUser = userViewModel.getUserByUsername(username)
+                                if (registeredUser != null) {
+                                    val insertJob = launch(Dispatchers.IO) {
+                                        Log.d("Register", "Inserting example match ${registeredUser.id}")
+                                        matchViewModel.insertExampleMatch(registeredUser.id.toString())
+                                    }
+                                    insertJob.join()
+
+                                    val getJob = launch(Dispatchers.IO) {
+                                        Log.d("Register", "Getting example match ${registeredUser.id}")
+                                        matchViewModel.getExampleMatch(registeredUser.id.toString())
+                                    }
+                                    getJob.join()
+
+                                    val exampleMatchId = matchViewModel.exampleMatch.value?.id
+                                    if (exampleMatchId != null) {
+                                        locationViewModel.insertLocationFromFile("exampleLocations.csv",
+                                            exampleMatchId.toString()
+                                        )
+                                        Log.d("Register", "Example match inserted successfully")
+                                    } else {
+                                        Log.d("Register", "Example match ID is null")
+                                    }
+                                } else {
+                                    Log.d("Register", "User not found")
+                                }
+
+
                                 username = ""
                                 password = ""
                                 fullName = ""

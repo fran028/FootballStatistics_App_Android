@@ -9,7 +9,7 @@ class UserRepository(private val userDao: UserDao) {
         return userDao.getUserByUsername(username)
     }
 
-    suspend fun updateLoginStatus(userId: String) {
+    suspend fun updateLoginStatus(userId: Int) {
         userDao.updateLoginStatus(userId)
     }
 

@@ -34,6 +34,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -64,8 +66,11 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.random.Random
-import java.util.Locale
 import kotlinx.coroutines.async
+import kotlin.math.abs
+import kotlin.math.absoluteValue
+import kotlin.math.max
+import kotlin.math.min
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -86,100 +91,23 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
 
     val lastMatches by matchViewModel.lastMatch.collectAsState(initial = null)
     val loginUser by userViewModel.loginUser.collectAsState(initial = null)
+    userViewModel.getLoginUser()
 
-    var newUser by remember { mutableStateOf(true) }
     var lastMatch = matchViewModel.emptyMatch()
     if (lastMatches != null && lastMatches!!.isNotEmpty()) {
         lastMatch = lastMatches!![0] ?: matchViewModel.emptyMatch()
     }
 
-    var hasCreatedMatch by remember { mutableStateOf(false) }
+    LaunchedEffect(key1 = userViewModel.loginUser) {
+        val user = userViewModel.loginUser.value
+        if (user != null) {
+            matchViewModel.getLastMatches(user.id.toString())
+        }
+    }
 
-    LaunchedEffect(key1 = userViewModel.loginUser, key2 = matchViewModel.lastMatch) {
-        coroutineScope.launch(Dispatchers.IO) {
-            // Use async to start both operations concurrently
-            val userDeferred = async { userViewModel.getLoginUser() }
-            val matchesDeferred = async { matchViewModel.getLastMatches() }
-
-            // Wait for both operations to complete
-            userDeferred.await()
-            matchesDeferred.await()
-            Log.d("HomePage", "User and matches fetched")
-            val loginUser = userViewModel.loginUser.value
-            Log.d("HomePage", "User fetched: $loginUser")
-            // Now you can use the results safely
-            if (loginUser != null) {
-                Log.d("HomePage", "Getting last match for user: ${loginUser.id}")
-                newUser = matchViewModel.lastMatch.value.isEmpty()
-                Log.d("HomePage", "Add match for user: ${loginUser.id}")
-                if (!hasCreatedMatch && newUser) {
-                    try {
-                        matchViewModel.getMatchCount(loginUser.id)
-                        if (matchViewModel.matchCount.value == 0) {
-                            Log.d(
-                                "HomePage",
-                                "No matches found for user: ${userViewModel.loginUser}"
-                            )
-                            // Add an example match for the logged-in user
-                            val maxLatitude = 60.0
-                            val maxLongitude = 100.0
-                            val minLatitude = 0.0
-                            val minLongitude = 0.0
-                            val exampleMatch = Match(
-                                id = "0",
-                                user_id = loginUser!!.id,
-                                date = LocalDate.now()
-                                    .format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                                ini_time = "00:00",
-                                end_time = "00:00",
-                                total_time = "60:00",
-                                away_corner_location = "$minLatitude,$maxLongitude",
-                                home_corner_location = "$maxLatitude,$minLongitude",
-                                kickoff_location = "${maxLatitude / 2},${maxLongitude / 2}"
-                            )
-                            Log.d(
-                                "HomePage",
-                                "Adding example match for user: ${loginUser.id}"
-                            )
-                            matchViewModel.insertMatch(exampleMatch)
-
-                            val matchtime = 60
-                            val matchtimeseconds = matchtime * 60
-                            Log.d("HomePage", "Adding locations for user: ${loginUser.id}")
-                            var prevPosition = Pair(maxLatitude / 2, maxLongitude / 2)
-                            for (i in 1..matchtimeseconds) {
-                                Log.d("HomePage", "Adding location $i for user: ${loginUser.id}")
-                                Log.d("HomePage", "Latitud: ${prevPosition.second}, Longitud: ${prevPosition.first}")
-                                val location = Location(
-                                    id = i,
-                                    latitude = prevPosition.first.toString(),
-                                    longitude = prevPosition.second.toString(),
-                                    match_id = "0",
-                                    timestamp = i.toString()
-
-                                )
-                                val nextposition = GetNextPosition(
-                                    prevPosition.first,
-                                    prevPosition.second,
-                                    maxLatitude,
-                                    maxLongitude,
-                                    minLatitude,
-                                    minLongitude
-                                )
-                                prevPosition = nextposition
-                                locationViewModel.insertLocation(location)
-                                Log.d("HomePage", "Location $i added for user: ${loginUser.id}")
-                            }
-                            Log.d("HomePage", "Locations added for user: ${loginUser.id}")
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    hasCreatedMatch = true
-                    Log.d("HomePage", "Match added for user: ${loginUser.id}")
-
-                }
-            }
+    LaunchedEffect(key1 = matchViewModel.lastMatch) {
+        if (matchViewModel.lastMatch.value.isNotEmpty()) {
+            lastMatch = lastMatches!![0] ?: matchViewModel.emptyMatch()
         }
     }
 
@@ -307,9 +235,9 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
     }
 }
 
-fun GetNextPosition(latitude: Double, longitude: Double, maxLatitude: Double, maxLongitude: Double, minLatitude: Double, minLongitude: Double):Pair<Double, Double> {
-    var newLatitude = Random.nextDouble(latitude - 2, latitude + 2)
-    var newLongitude = Random.nextDouble(longitude - 2, longitude + 2)
+fun GetRandomNextPosition(latitude: Double, longitude: Double, maxLatitude: Double, maxLongitude: Double, minLatitude: Double, minLongitude: Double):Pair<Double, Double> {
+    var newLatitude = Random.nextDouble(latitude - 0.000002, latitude + 0.000002)
+    var newLongitude = Random.nextDouble(longitude - 0.000002, longitude + 0.000002)
     var randomLatitude = newLatitude
     var randomLongitude = newLongitude
     while (
@@ -318,20 +246,63 @@ fun GetNextPosition(latitude: Double, longitude: Double, maxLatitude: Double, ma
         randomLongitude < minLongitude ||
         randomLongitude > maxLongitude
     ) {
-        randomLatitude = Random.nextDouble(newLatitude - 2, newLatitude + 2)
-        randomLongitude = Random.nextDouble(newLongitude - 2, newLongitude + 2)
+        randomLatitude = Random.nextDouble(newLatitude - 0.000002, newLatitude + 0.000002)
+        randomLongitude = Random.nextDouble(newLongitude - 0.000002, newLongitude + 0.000002)
     }
     newLatitude = randomLatitude
     newLongitude = randomLongitude
     return Pair(newLatitude, newLongitude)
 }
 
-fun generateRandomLatitudeString(maxValue: Double): String {
-    val randomLatitude = Random.nextDouble(0.00, maxValue)
-    return String.format(Locale.UK, "%.6f", randomLatitude)
-}
-
-fun generateRandomLongitudeString(maxValue: Double): String {
-    val randomLongitude = Random.nextDouble(0.00, maxValue)
-    return String.format(Locale.UK, "%.6f", randomLongitude)
-}
+//fun GetNextPosition(
+//    currentLatitude: Double,  currentLongitude: Double,
+//    maxLatitude: Double, maxLongitude: Double,
+//    minLatitude: Double, minLongitude: Double,
+//    prevLatitude: Double, prevLongitude: Double
+//): Pair<Double, Double> {
+//
+//    val maxStepDistance = 0.0001 // Maximum distance (latitude or longitude) a player can move in one step
+//    val changeDirectionProbability = 0.15 // Probability of changing direction
+//    val restProbability = 0.15// Probability of stop
+//    val speedLimit = 0.00005
+//
+//    var newLatitude = currentLatitude
+//    var newLongitude = currentLongitude
+//
+//    // Rest
+//    if (Random.nextDouble() < restProbability) {
+//        return Pair(newLatitude, newLongitude)
+//    }
+//
+//    var directionLatitude = if (Random.nextDouble() < changeDirectionProbability) {
+//        Random.nextDouble(-1.0, 1.0)
+//    } else {
+//        prevLatitude - currentLatitude
+//    }
+//    var directionLongitude = if (Random.nextDouble() < changeDirectionProbability) {
+//        Random.nextDouble(-1.0, 1.0)
+//    } else {
+//        prevLongitude - currentLongitude
+//    }
+//
+//    // Limit change of direction
+//    directionLatitude = max(min(directionLatitude, maxStepDistance), -maxStepDistance)
+//    directionLongitude = max(min(directionLongitude, maxStepDistance), -maxStepDistance)
+//    newLatitude += directionLatitude
+//    newLongitude += directionLongitude
+//
+//    // Limit Speed
+//    val movement = Pair(abs(newLatitude - currentLatitude), abs(newLongitude - currentLongitude))
+//    if (movement.first > speedLimit) {
+//        newLatitude = if (newLatitude > currentLatitude) currentLatitude + speedLimit else currentLatitude - speedLimit
+//    }
+//    if (movement.second > speedLimit) {
+//        newLongitude = if (newLongitude > currentLongitude) currentLongitude + speedLimit else currentLongitude - speedLimit
+//    }
+//
+//    // Ensure inside field
+//    newLatitude = max(minLatitude, min(newLatitude, maxLatitude))
+//    newLongitude = max(minLongitude, min(newLongitude, maxLongitude))
+//
+//    return Pair(newLatitude, newLongitude)
+//}

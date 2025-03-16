@@ -48,7 +48,7 @@ import kotlin.text.split
 import kotlin.text.toDouble
 
 @Composable
-fun HeatmapChart(match_id: String, color: Color = blue) {
+fun HeatmapChart(match_id: Int, color: Color = blue) {
     val context = LocalContext.current
     val database = AppDatabase.getDatabase(context)
     val scope = rememberCoroutineScope()
@@ -74,9 +74,9 @@ fun HeatmapChart(match_id: String, color: Color = blue) {
     LaunchedEffect(key1 = Unit) {
         scope.launch(Dispatchers.IO) {
             Log.d("HeatmapChart", "Getting locations for match: $match_id")
-            hasLocation = locationViewModel.checkIfMatchHasLocation(match_id)
+            hasLocation = locationViewModel.checkIfMatchHasLocation(match_id.toString())
             if (hasLocation) {
-                locationViewModel.getLocationsByMatchId(match_id)
+                locationViewModel.getLocationsByMatchId(match_id.toString())
                 Log.d("HeatmapChart", "Locations gotten for match: $match_id")
                 matchViewModel.getMatch(match_id)
             } else {
@@ -91,6 +91,7 @@ fun HeatmapChart(match_id: String, color: Color = blue) {
             maxLat = match!!.home_corner_location.split(",")[0].toDouble()
             minLon = match!!.home_corner_location.split(",")[1].toDouble()
             maxLon = match!!.away_corner_location.split(",")[1].toDouble()
+
         } else {
             if(locationDataList.isNotEmpty()) {
                 locationDataList.forEach { location ->

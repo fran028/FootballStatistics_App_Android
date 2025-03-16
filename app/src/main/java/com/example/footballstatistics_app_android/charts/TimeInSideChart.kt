@@ -47,7 +47,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun TimeInSideChart(match_id: String, color_left: Color = blue, color_right: Color = yellow) {
+fun TimeInSideChart(match_id: Int, color_left: Color = blue, color_right: Color = yellow) {
 
     val context = LocalContext.current
     val database = AppDatabase.getDatabase(context)
@@ -70,9 +70,9 @@ fun TimeInSideChart(match_id: String, color_left: Color = blue, color_right: Col
     LaunchedEffect(key1 = Unit) {
         scope.launch(Dispatchers.IO) {
             Log.d("TimeChart", "Getting locations for match: $match_id")
-            hasLocation = locationViewModel.checkIfMatchHasLocation(match_id)
+            hasLocation = locationViewModel.checkIfMatchHasLocation(match_id.toString())
             if (hasLocation) {
-                locationViewModel.getLocationsByMatchId(match_id)
+                locationViewModel.getLocationsByMatchId(match_id.toString())
                 Log.d("TimeChart", "Locations gotten for match: $match_id")
                 matchViewModel.getMatch(match_id)
             } else {
@@ -114,13 +114,14 @@ private fun NoDataAvailable(text: String) {
 @Composable
 fun SideChart(locationDataList: List<Location?>, match: Match, color_left: Color, color_right: Color){
     val height = 264.dp
-    val halfPitch = match.kickoff_location.split(",")[0].toDouble()
+    val halfPitch = match.kickoff_location.split(",")[1].toDouble()
+    Log.d("TimeChart", "Half pitch: $halfPitch")
     var leftCount = 0
     var rightCount = 0
     val total = locationDataList.size
     locationDataList.forEach { location ->
         if (location != null) {
-            val latitude = location.latitude.toDouble()
+            val latitude = location.longitude.toDouble()
             if (latitude < halfPitch) {
                 leftCount++
             } else {

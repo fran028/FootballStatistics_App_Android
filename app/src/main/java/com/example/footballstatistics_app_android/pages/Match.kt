@@ -71,7 +71,7 @@ import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match_id: String) {
+fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match_id: Int) {
     val scrollState = rememberScrollState()
 
     val context = LocalContext.current
@@ -94,11 +94,11 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         coroutineScope.launch(Dispatchers.IO) {
             matchViewModel.getMatch(match_id)
             Log.d("MatchPage", "Fetched match: $match")
-            locationViewModel.calculateTotalDistanceForMatch(match_id)
+            locationViewModel.calculateTotalDistanceForMatch(match_id.toString())
             Log.d("MatchPage", "Calculated total distance: $totalDistance")
-            locationViewModel.calculateTopSpeedForMatch(match_id)
+            locationViewModel.calculateTopSpeedForMatch(match_id.toString())
             Log.d("MatchPage", "Calculated top speed: $topSpeed")
-            locationViewModel.calculateAveragePaceForMatch(match_id)
+            locationViewModel.calculateAveragePaceForMatch(match_id.toString())
             Log.d("MatchPage", "Calculated average pace: $averagePace")
         }
 

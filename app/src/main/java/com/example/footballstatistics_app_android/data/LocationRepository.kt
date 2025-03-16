@@ -28,4 +28,8 @@ class LocationRepository (private val locationDao: LocationDao){
         return locationDao.checkIfMatchHasLocation(matchId)
     }
 
+    suspend fun insertAllLocations(locations: List<Location>){
+        locationDao.insertAllLocations(locations)
+    }
+
 }

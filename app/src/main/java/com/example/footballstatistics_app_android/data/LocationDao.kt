@@ -28,4 +28,7 @@ interface LocationDao {
         return (getLocationsByMatchId(id) != null)
     }
 
+    @Insert
+    suspend fun insertAllLocations(location: List<Location>)
+
 }

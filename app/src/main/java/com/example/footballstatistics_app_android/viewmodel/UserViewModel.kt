@@ -30,7 +30,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         }
     }
 
-    fun updateLoginStatus(userId: String) {
+    fun updateLoginStatus(userId: Int) {
         viewModelScope.launch {
             userRepository.updateLoginStatus(userId)
         }

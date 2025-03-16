@@ -3,13 +3,16 @@ package com.example.footballstatistics_app_android.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.footballstatistics_app_android.FootballStatisticsApplication
 import com.example.footballstatistics_app_android.data.Location
 import com.example.footballstatistics_app_android.data.LocationRepository
+import com.opencsv.CSVReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.InputStreamReader
 import kotlin.text.toDouble
 import android.location.Location as AndroidLocation
 
@@ -32,6 +35,51 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
     fun getLocationById(locationId: String) {
         viewModelScope.launch {
             repository.getLocationById(locationId)
+        }
+    }
+
+    fun insertLocationFromFile(fileName: String, matchId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val context = FootballStatisticsApplication.getContext()
+                val assetManager = context.assets
+                val inputStream = assetManager.open(fileName)
+                val reader = CSVReader(InputStreamReader(inputStream))
+                val lines = reader.readAll()
+                reader.close()
+                // Skip header
+                lines.drop(1).forEach { row ->
+                    val location = createLocationFromCsvRow(row, matchId)
+                    if (location != null) {
+                        repository.insertLocation(location)
+                    }
+                }
+                Log.d("LocationViewModel", "CSV locations inserted in database")
+            } catch (e: Exception) {
+                Log.e("LocationViewModel", "Error inserting locations from CSV file", e)
+            }
+        }
+    }
+
+    private fun createLocationFromCsvRow(row: Array<String>, matchId: String): Location? {
+        // Check if the row has the correct number of columns
+        if (row.size != 5) {
+            Log.e("LocationViewModel", "Skipping row with incorrect number of columns: ${row.contentToString()}")
+            return null
+        }
+        return try {
+            Location(
+                match_id = matchId,
+                latitude = row[2],
+                longitude = row[3],
+                timestamp = row[4],
+            )
+        } catch (e: NumberFormatException) {
+            Log.e("LocationViewModel", "Error parsing numbers from row: ${row.contentToString()}", e)
+            null
+        } catch (e: Exception) {
+            Log.e("LocationViewModel", "Error creating location from row: ${row.contentToString()}", e)
+            null
         }
     }
 
@@ -67,7 +115,7 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             val locations = repository.getLocationsByMatchId(matchId)
             if (locations != null) {
-                val totalDistance = calculateTotalDistance(locations)
+                val totalDistance = calculateTotalDistance(locations) / 1000
                 _totalDistance.value = totalDistance
                 Log.d("LocationViewModel", "Total distance for match $matchId: $totalDistance meters")
             } else {
@@ -80,7 +128,7 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             val locations = repository.getLocationsByMatchId(matchId)
             if (locations != null) {
-                val topSpeed = calculateTopSpeed(locations)
+                val topSpeed = calculateTopSpeed(locations) / 1000
                 _topSpeed.value = topSpeed
                 Log.d("LocationViewModel", "Top speed for match $matchId: $topSpeed m/s")
             } else {
@@ -124,7 +172,7 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
         return totalDistance
     }
 
-    private fun calculateTopSpeed(locations: List<Location>): Double {
+    private fun calculateTopSpeed(locations: List<Location>, unit: SpeedUnit = SpeedUnit.KMH): Double {
         var topSpeed = 0.0
         if (locations.size < 2) {
             return topSpeed
@@ -159,7 +207,17 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
                 topSpeed = speed
             }
         }
-        return topSpeed
+        val convertedSpeed = when (unit) {
+            SpeedUnit.MS -> topSpeed
+            SpeedUnit.KMH -> topSpeed * 3.6
+            SpeedUnit.MPH -> topSpeed * 2.237
+        }
+        return convertedSpeed
+    }
+    enum class SpeedUnit {
+        MS, // Meters per second
+        KMH, // Kilometers per hour
+        MPH // Miles per hour
     }
 
     private fun calculateAveragePace(locations: List<Location>): Double {

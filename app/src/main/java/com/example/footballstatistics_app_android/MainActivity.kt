@@ -2,6 +2,8 @@ package com.example.footballstatistics_app_android
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.bluetooth.BluetoothDevice
+import android.content.BroadcastReceiver
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
@@ -72,8 +74,7 @@ import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.Theme.blue
 import com.example.footballstatistics_app_android.Theme.gray
 import android.content.Context
-import android.content.pm.PackageManager.PERMISSION_GRANTED
-import android.content.pm.PackageManager.PERMISSION_DENIED
+import androidx.activity.result.contract.ActivityResultContracts
 
 data class BottomNavigationItem(
     val title: String,
@@ -85,9 +86,23 @@ data class BottomNavigationItem(
 )
 
 class MainActivity : ComponentActivity() {
+
     private var isBluetoothConnected = mutableStateOf(false)
     lateinit var container: AppContainer
     private lateinit var dataTransferReceiver: DataTransferReceiver
+    private lateinit var bluetoothConnectionReceiver: BluetoothConnectionReceiver
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                // Permission is granted. Continue the action or workflow in your app.
+                Log.d("MainActivity", "BLUETOOTH_CONNECT permission granted")
+            } else {
+                // Explain to the user that the feature is unavailable because the
+                // feature requires a permission that the user has denied.
+                Log.w("MainActivity", "BLUETOOTH_CONNECT permission denied")
+            }
+        }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @RequiresApi(Build.VERSION_CODES.O)
@@ -101,6 +116,12 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         checkBluetoothPermissions()
+        checkBluetoothPermissionAndStartService()
+        bluetoothConnectionReceiver = BluetoothConnectionReceiver()
+        val filter = IntentFilter()
+        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+        registerReceiver(bluetoothConnectionReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
 
         //Receiver creation
         /*dataTransferReceiver = DataTransferReceiver {
@@ -142,28 +163,44 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(dataTransferReceiver)
+        //unregisterReceiver(dataTransferReceiver)
+        unregisterReceiver(bluetoothConnectionReceiver)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val filter = IntentFilter()
+        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+        ContextCompat.registerReceiver(this, bluetoothConnectionReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
+
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(bluetoothConnectionReceiver)
     }
 
     private fun checkBluetoothPermissions() {
         if (ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.BLUETOOTH_CONNECT
-            ) != PERMISSION_GRANTED ||
+            ) != PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.BLUETOOTH_SCAN
-            ) != PERMISSION_GRANTED ||
+            ) != PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PERMISSION_GRANTED ||
+            ) != PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PERMISSION_GRANTED
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
                 this,
@@ -185,7 +222,7 @@ class MainActivity : ComponentActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PERMISSION_GRANTED) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d("MainActivity", "Permissions granted")
             } else {
                 Log.w("MainActivity", "Permissions denied")
@@ -196,13 +233,51 @@ class MainActivity : ComponentActivity() {
     private fun onBluetoothConnected(isConnected: Boolean) {
         isBluetoothConnected.value = isConnected
     }
+    fun checkBluetoothPermissionAndStartService() {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            // You can use the API that requires the permission.
+            Log.d("MainActivity", "BLUETOOTH_CONNECT already granted")
+            // Optionally, start your service or perform other actions here
+        } else {
+            when {
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                    this,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) -> {
+                    // In an educational UI, explain to the user why your app requires this
+                    // permission for a specific feature to behave as expected, and what
+                    // features are disabled if it's not granted. Then, in the UI, include a
+                    // "Next" or "Got it" button that triggers the permission request.
+                    Log.w(
+                        "MainActivity",
+                        "BLUETOOTH_CONNECT permission requires an explanation to the user."
+                    )
+                    requestPermissionLauncher.launch(
+                        Manifest.permission.BLUETOOTH_CONNECT
+                    )
+                }
+
+                else -> {
+                    // You can directly ask for the permission.
+                    Log.w("MainActivity", "BLUETOOTH_CONNECT requesting permission.")
+                    requestPermissionLauncher.launch(
+                        Manifest.permission.BLUETOOTH_CONNECT
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
 fun BluetoothStatusIcon(isConnected: Boolean, modifier: Modifier) {
     var color = white
     var border = gray
-    if(!isConnected){
+    if (!isConnected) {
         color = blue
         border = white
     }
@@ -216,7 +291,7 @@ fun BluetoothStatusIcon(isConnected: Boolean, modifier: Modifier) {
                 .clip(CircleShape)
                 .background(color)
                 .padding(2.dp)
-        ){
+        ) {
             Icon(
                 imageVector = if (isConnected) Icons.Filled.Bluetooth else Icons.Filled.BluetoothDisabled,
                 contentDescription = "Bluetooth Status",
@@ -228,7 +303,7 @@ fun BluetoothStatusIcon(isConnected: Boolean, modifier: Modifier) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MainScreen(isBluetoothConnected: Boolean, onBluetoothConnectedChange: (Boolean) -> Unit){
+fun MainScreen(isBluetoothConnected: Boolean, onBluetoothConnectedChange: (Boolean) -> Unit) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -356,7 +431,7 @@ fun MainScreen(isBluetoothConnected: Boolean, onBluetoothConnectedChange: (Boole
                     MatchPage(
                         navController = navController,
                         modifier = Modifier,
-                        match_id = 0.toString()
+                        match_id = 0
                     )
                 }
                 composable(Screen.Calendar.route) {

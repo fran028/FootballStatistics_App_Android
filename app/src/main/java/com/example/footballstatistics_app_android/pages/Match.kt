@@ -123,6 +123,25 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
     ) {
         ViewTitle(title = "MATCH DATA", image = R.drawable.match_img)
         Spacer(modifier = Modifier.height(24.dp))
+        if (currentMatch.isExample) {
+            Row (
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 32.dp)
+            ) {
+                ColorBar(
+                    text = "EXAMPLE MATCH",
+                    value = "",
+                    bgcolor = yellow,
+                    textcolor = black,
+                    width = 500.dp,
+                    height = 50.dp
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
         Row(horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -146,7 +165,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
             Image(
                 painter = painterResource(id = R.drawable.pitch_color),
                 contentDescription = "Soccer Image",
-                modifier = Modifier.size(120.dp)
+                modifier = Modifier.size(120.dp).padding(horizontal = 0.dp)
             )
 
         }
@@ -225,17 +244,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         )
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 36.dp )){
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .clip(RoundedCornerShape(8.dp))
-//                    .background(Color.Transparent)
-//                    .border(width = 4.dp, color = white, shape = RoundedCornerShape(8.dp))
-//                    .height(125.dp),
-//                contentAlignment = Alignment.Center
-//            ) {
-                HeatmapChart( match_id )
-            //}
+            HeatmapChart( match_id )
         }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
@@ -261,7 +270,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         Column (Modifier.padding(horizontal = 36.dp )){
             TimelineChart(match_id, blue)
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        /*Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "CHART - DISTANCE PER MINUTE",
             fontFamily = RobotoCondensed,
@@ -271,12 +280,12 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         )
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 36.dp )){
-            //DistanceLineChart(match_id, blue)
-        }
+            DistanceLineChart(match_id, blue)
+        }*/
 
 
 
-        Spacer(modifier = Modifier.height(24.dp))
+        /*Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "STATISTICS (Example)",
             fontFamily = LeagueGothic,
@@ -323,7 +332,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
                 width = 500.dp,
                 height = 50.dp
             )
-        }
+        }*/
         Spacer(modifier = Modifier.height(30.dp))
     }
 }

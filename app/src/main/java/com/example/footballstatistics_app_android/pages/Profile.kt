@@ -1,8 +1,8 @@
 package com.example.footballstatistics_app_android.pages
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,9 +46,12 @@ import com.example.footballstatistics_app_android.components.ColorBar
 import com.example.footballstatistics_app_android.components.RecordBox
 import com.example.footballstatistics_app_android.components.ViewTitle
 import com.example.footballstatistics_app_android.data.AppDatabase
+import com.example.footballstatistics_app_android.data.LocationRepository
 import com.example.footballstatistics_app_android.data.MatchRepository
 import com.example.footballstatistics_app_android.data.User
 import com.example.footballstatistics_app_android.data.UserRepository
+import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
+import com.example.footballstatistics_app_android.viewmodel.LocationViewModelFactory
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
 import com.example.footballstatistics_app_android.viewmodel.UserViewModel
@@ -81,6 +84,9 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
     val matchRepository = MatchRepository(appDatabase.matchDao())
     val matchViewModelFactory = MatchViewModelFactory(matchRepository)
     val matchViewModel: MatchViewModel = viewModel(factory = matchViewModelFactory)
+    val locationRepository = LocationRepository(appDatabase.locationDao())
+    val locationViewModelFactory = LocationViewModelFactory(locationRepository)
+    val locationViewModel: LocationViewModel = viewModel(factory = locationViewModelFactory)
     val coroutineScope = rememberCoroutineScope()
 
     var isLoading by remember { mutableStateOf(false) }
@@ -100,13 +106,24 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
 
     LaunchedEffect(key1 = Unit) {
         userViewModel.getLoginUser()
-        matchViewModel.getMatchCount(userViewModel.loginUser.toString())
-        matchViewModel.getTotalDuration()
     }
     val getUser by userViewModel.loginUser.collectAsState()
+
+    LaunchedEffect(key1 = userViewModel.loginUser) {
+        matchViewModel.getMatchCount(userViewModel.loginUser.toString())
+        matchViewModel.getTotalDuration(userViewModel.loginUser.toString())
+        matchViewModel.getAllUserMatches(userViewModel.loginUser.toString())
+    }
+
+    LaunchedEffect(key1 = matchViewModel.allMatches) {
+        val matches = matchViewModel.allMatches.value
+        if (matches.isNotEmpty()) {
+            locationViewModel.getDistanceOfAllMatches(matches)
+        }
+    }
     val getMatchCount by matchViewModel.matchCount.collectAsState()
     val getTotalDuration by matchViewModel.totalDuration.collectAsState()
-
+    val allMatchesDistance by locationViewModel.allMatchesDistance.collectAsState()
 
     val user = getUser ?: User(
         id = 0,
@@ -151,8 +168,10 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
             modifier = Modifier.padding(horizontal = 32.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.Start,
-            modifier = Modifier.padding(horizontal = 32.dp)) {
+        Row(
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        ) {
             Text(
                 text = "${height}cm ",
                 fontFamily = RobotoCondensed,
@@ -167,12 +186,19 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
                 color = white
             )
         }
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 32.dp)) {
+            Text(
+                text = "TOTAL STATISTICS",
+                fontFamily = LeagueGothic,
+                fontSize = 32.sp,
+                color = white,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             ColorBar(
-                text = "MATCHES ",
+                text = "MATCHES",
                 value = "$getMatchCount MP",
                 bgcolor = green,
                 textcolor = black,
@@ -181,8 +207,8 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
             )
             Spacer(modifier = Modifier.height(12.dp))
             ColorBar(
-                text = "DISTANCE ",
-                value = "50 km",
+                text = "DISTANCE",
+                value = "$allMatchesDistance km",
                 bgcolor = yellow,
                 textcolor = black,
                 width = 500.dp,
@@ -190,7 +216,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
             )
             Spacer(modifier = Modifier.height(12.dp))
             ColorBar(
-                text = "TIME ",
+                text = "TIME",
                 value = getTotalDuration,
                 bgcolor = blue,
                 textcolor = black,
@@ -198,7 +224,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
                 height = 50.dp
             )
         }
-        Spacer(modifier = Modifier.height(24.dp))
+        /*Spacer(modifier = Modifier.height(24.dp))
         Row(
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
@@ -249,8 +275,8 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
                     width = 100.dp
                 )
             }
-        }
-        Spacer(modifier = Modifier.height(12.dp))
+        }*/
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "SETTINGS",
             fontFamily = LeagueGothic,

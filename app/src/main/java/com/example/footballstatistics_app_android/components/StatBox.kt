@@ -86,7 +86,7 @@ fun StatBox(
                         fontFamily = RobotoCondensed,
                         style = TextStyle(
                             color = black,
-                            fontSize = 22.sp,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )

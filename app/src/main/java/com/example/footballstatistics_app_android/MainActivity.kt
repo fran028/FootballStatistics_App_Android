@@ -75,6 +75,8 @@ import com.example.footballstatistics_app_android.Theme.blue
 import com.example.footballstatistics_app_android.Theme.gray
 import android.content.Context
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 data class BottomNavigationItem(
     val title: String,
@@ -218,7 +220,7 @@ class MainActivity : ComponentActivity() {
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
-        grantResults: IntArray
+        grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1) {
@@ -427,11 +429,17 @@ fun MainScreen(isBluetoothConnected: Boolean, onBluetoothConnectedChange: (Boole
                         modifier = Modifier
                     )
                 }
-                composable(Screen.Match.route) {
+                composable(
+                    route = Screen.Match.route,
+                    arguments = listOf(
+                        navArgument("match_id") { type = NavType.IntType }
+                    )
+                ) { backStackEntry ->
+                    val matchid = backStackEntry.arguments?.getInt("match_id") ?: 0
                     MatchPage(
                         navController = navController,
                         modifier = Modifier,
-                        match_id = 0
+                        match_id = matchid
                     )
                 }
                 composable(Screen.Calendar.route) {
@@ -440,16 +448,7 @@ fun MainScreen(isBluetoothConnected: Boolean, onBluetoothConnectedChange: (Boole
                         modifier = Modifier
                     )
                 }
-                composable(
-                    Screen.Profile.route,
-                    /*arguments = listOf(
-                    navArgument("userId") {
-                        type = NavType.StringType
-                    }
-                )*/
-                ) {
-                    /*entry ->
-                val userId = entry.arguments?.getString("userId") ?: ""*/
+                composable(Screen.Profile.route) {
                     ProfilePage(
                         navController = navController,
                         modifier = Modifier

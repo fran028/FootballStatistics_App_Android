@@ -19,7 +19,6 @@ class MatchRepository (private val matchDao: MatchDao) {
 
     fun getAllMatches(): Flow<List<Match>> {
         return matchDao.getAllMatches()
-
     }
 
     fun getLastMatches(amount: Int, userId: String): List<Match> {
@@ -38,12 +37,16 @@ class MatchRepository (private val matchDao: MatchDao) {
         return matchDao.getMatchCount(userId = userId)
     }
 
-    fun getTotalDuration(): String {
-        return matchDao.getTotalDuration()
+    fun getTotalDuration(id: String): String {
+        return matchDao.getTotalDuration(id)
     }
 
     suspend fun getExampleMatch(id: String): Match? {
         return matchDao.getExampleMatch(id)
+    }
+
+    suspend fun getAllUserMatches(id: String): List<Match> {
+        return matchDao.getAllUserMatches(id)
     }
 
 

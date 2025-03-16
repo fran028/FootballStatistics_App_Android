@@ -3,7 +3,6 @@ package com.example.footballstatistics_app_android.pages
 
 import HeatmapChart
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,10 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -34,8 +30,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
-import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -50,9 +44,7 @@ import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.components.ButtonIconObject
 import com.example.footballstatistics_app_android.components.ViewTitle
 import com.example.footballstatistics_app_android.data.AppDatabase
-import com.example.footballstatistics_app_android.data.Location
 import com.example.footballstatistics_app_android.data.LocationRepository
-import com.example.footballstatistics_app_android.data.Match
 import com.example.footballstatistics_app_android.data.MatchRepository
 import com.example.footballstatistics_app_android.data.UserRepository
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
@@ -61,16 +53,7 @@ import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
 import com.example.footballstatistics_app_android.viewmodel.UserViewModel
 import com.example.footballstatistics_app_android.viewmodel.UserViewModelFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import kotlin.random.Random
-import kotlinx.coroutines.async
-import kotlin.math.abs
-import kotlin.math.absoluteValue
-import kotlin.math.max
-import kotlin.math.min
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -141,6 +124,15 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
                     fontSize = 40.sp,
                     color = white
                 )
+                if(lastMatch.isExample) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "EXAMPLE MATCH",
+                        fontFamily = RobotoCondensed,
+                        fontSize = 16.sp,
+                        color = yellow
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = lastMatch.date,
@@ -188,7 +180,7 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
                     color = white,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                HeatmapChart(lastMatch.id, green)
+                HeatmapChart(lastMatch.id, yellow)
             }
         }
 
@@ -208,9 +200,13 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
         Column (Modifier.padding(horizontal = 30.dp )) {
             if (!noMatches){
                 for (match in lastMatches!!) {
+                    var matchName = "Match ${match?.id}"
+                    if(match?.isExample == true){
+                        matchName = "Example Match"
+                    }
                     ButtonIconObject(
-                        text = "Match ${match?.id}",
-                        onClick = { navController.navigate(Screen.Match.route) },
+                        text = matchName,
+                        onClick = { navController.navigate(Screen.Match.createRoute(match?.id)) },
                         bgcolor = yellow,
                         height = 50.dp,
                         textcolor = black,

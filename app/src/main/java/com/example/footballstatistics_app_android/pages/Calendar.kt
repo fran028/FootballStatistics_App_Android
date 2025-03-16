@@ -1,6 +1,7 @@
 package com.example.footballstatistics_app_android.pages
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -67,6 +69,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.text.format
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -74,7 +77,6 @@ fun CalendarPage(
     modifier: Modifier = Modifier,
     navController: NavController,
 ) {
-
     val context = LocalContext.current
     val database = AppDatabase.getDatabase(context)
     val matchRepository = MatchRepository(database.matchDao())
@@ -89,12 +91,67 @@ fun CalendarPage(
     var selectedDate by remember { mutableStateOf<Date?>(null) }
     var currentMonth by remember { mutableStateOf(Calendar.getInstance()) }
     val dateFormat = SimpleDateFormat("dd/MM/yy", java.util.Locale.getDefault())
+    val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.UK)  // Example of format used in database
 
     var userid by remember { mutableStateOf("") }
+    var shouldFetchMatches by remember { mutableStateOf(false) }
+    var shouldFetchMonth by remember { mutableStateOf(true) }
+
+    val loginUser by userViewModel.loginUser.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
-        userViewModel.getLoginUser().toString()
-        matchViewModel.getMatchesBetweenDates(selectedDate.toString(), selectedDate.toString(),userViewModel.loginUser.toString())
+        userViewModel.getLoginUser()
+    }
+
+    LaunchedEffect(key1 = loginUser) {
+        if (loginUser != null) {
+            userid = userViewModel.loginUser.value!!.id.toString()
+        }
+    }
+
+    LaunchedEffect(key1 = shouldFetchMonth, key2 = loginUser) {
+        val firstDayOfMonth = currentMonth.clone() as Calendar
+        firstDayOfMonth.set(Calendar.DAY_OF_MONTH, 1)
+        val lastDayOfMonth = currentMonth.clone() as Calendar
+        lastDayOfMonth.set(
+            Calendar.DAY_OF_MONTH,
+            currentMonth.getActualMaximum(Calendar.DAY_OF_MONTH)
+        )
+        val startDateString = dateFormatter.format(firstDayOfMonth.time)
+        val endDateString = dateFormatter.format(lastDayOfMonth.time)
+        matchViewModel.getMatchesInMonth(
+            startDateString,
+            endDateString,
+            userid
+        )
+        shouldFetchMonth = false
+    }
+
+    val matchesInMonth by matchViewModel.matchesInMonth.collectAsState()
+    val dateList = remember { mutableStateListOf<String>() }
+
+    LaunchedEffect(key1 = matchesInMonth) {
+        for (match in matchesInMonth) {
+            match?.let {
+                val dateString = match.date
+                val date = dateFormatter.parse(dateString) // Parse the string to a Date object
+                if (date != null) {
+                    val formattedDate = dateFormatter.format(date) // Format the Date object
+                    dateList.add(formattedDate)
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(key1 = userViewModel.loginUser, key2 = shouldFetchMatches) {
+        if (selectedDate != null && shouldFetchMatches) {
+            matchViewModel.getMatchesBetweenDates(
+                dateFormatter.format(selectedDate!!),
+                dateFormatter.format(selectedDate!!),
+                userViewModel.loginUser.value?.id.toString()
+            )
+            shouldFetchMatches = false
+        }
     }
     val dateMatches by matchViewModel.matchesBetweenDates.collectAsState()
 
@@ -217,11 +274,13 @@ fun CalendarPage(
                             val newMonth = currentMonth.clone() as Calendar
                             newMonth.add(Calendar.MONTH, -1)
                             currentMonth = newMonth
+                            shouldFetchMonth = true
                         },
                         onNextMonth = {
                             val newMonth = currentMonth.clone() as Calendar
                             newMonth.add(Calendar.MONTH, 1)
                             currentMonth = newMonth
+                            shouldFetchMonth = true
                         }
                     )
                     CalendarGrid(
@@ -229,10 +288,12 @@ fun CalendarPage(
                         selectedDate = selectedDate,
                         onDateSelected = {
                             selectedDate = it
-                            matchViewModel.getMatchesBetweenDates(selectedDate.toString(),selectedDate.toString(),userViewModel.loginUser.toString())
+                            shouldFetchMatches = true
                         },
                         matchViewModel = matchViewModel,
-                        userViewModel = userViewModel
+                        userViewModel = userViewModel,
+                        userid = userid,
+                        matchesInMonth = dateList
                     )
                 }
             }
@@ -269,7 +330,7 @@ fun CalendarPage(
                             if (match != null) {
                                 ButtonIconObject(
                                     text = "Match ${match.id}",
-                                    onClick = { navController.navigate(Screen.Match.route) },
+                                    onClick = { navController.navigate(Screen.Match.createRoute(match.id)) },
                                     bgcolor = blue,
                                     height = 50.dp,
                                     textcolor = black,
@@ -368,13 +429,14 @@ fun CalendarGrid(
     onDateSelected: (java.util.Date) -> Unit,
     matchViewModel: MatchViewModel,
     userViewModel: UserViewModel,
+    userid: String,
+    matchesInMonth: List<String>,
 ) {
     val daysInMonth = currentMonth.getActualMaximum(Calendar.DAY_OF_MONTH)
     val firstDayOfMonth = currentMonth.clone() as Calendar
     firstDayOfMonth.set(Calendar.DAY_OF_MONTH, 1)
     val firstDayOfWeek = firstDayOfMonth.get(Calendar.DAY_OF_WEEK)
     val days = (1..daysInMonth).toList()
-    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(7),
@@ -393,20 +455,26 @@ fun CalendarGrid(
         items(items = days) { day ->
             val date = firstDayOfMonth.clone() as Calendar
             date.set(Calendar.DAY_OF_MONTH, day)
-            val formattedDate = dateFormat.format(date.time)
+            val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.UK)
             Day(
                 day = day,
                 isSelected = isSameDay(date.time, selectedDate),
                 onDateSelected = { onDateSelected(date.time) },
-                hasMatch = matchViewModel.dayHasMatch(formattedDate, userViewModel.loginUser.toString()),
+                hasMatch = if(matchesInMonth.contains(dateFormatter.format(date.time))) true else false,
                 isToday = isSameDay(date.time, Date())
             )
         }
+
     }
+
+
 }
 
 @Composable
 fun Day(day: Int, isSelected: Boolean, onDateSelected: () -> Unit, hasMatch: Boolean = false, isToday: Boolean = false) {
+    if(hasMatch){
+        Log.d("Day", "Day has match: $day")
+    }
     Box(
         modifier = Modifier
             .padding(4.dp)

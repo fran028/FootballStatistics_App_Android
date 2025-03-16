@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.footballstatistics_app_android.FootballStatisticsApplication
 import com.example.footballstatistics_app_android.data.Location
 import com.example.footballstatistics_app_android.data.LocationRepository
+import com.example.footballstatistics_app_android.data.Match
 import com.opencsv.CSVReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -244,5 +245,29 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
         Log.d("LocationViewModel", "Average pace in minutes per km: $averagePaceMinPerKm min/km")
 
         return averagePaceMinPerKm
+    }
+
+    private val _allMatchesDistance = MutableStateFlow(0.0)
+    val allMatchesDistance: StateFlow<Double> = _allMatchesDistance
+
+    fun getDistanceOfAllMatches(matches: List<Match?>){
+        var totalDistance = 0.0
+        viewModelScope.launch(Dispatchers.IO) {
+            for (match in matches) {
+                val matchId = match?.id.toString()
+                val locations = repository.getLocationsByMatchId(matchId)
+                if (locations != null) {
+                    val matchDistance = calculateTotalDistance(locations) / 1000
+                    totalDistance += totalDistance
+                    Log.d(
+                        "LocationViewModel",
+                        "Total distance for match $matchId: $totalDistance meters"
+                    )
+                } else {
+                    Log.d("LocationViewModel", "No locations found for match: $matchId")
+                }
+            }
+            _allMatchesDistance.value = totalDistance
+        }
     }
 }

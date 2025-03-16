@@ -34,12 +34,14 @@ interface MatchDao {
     @Query("SELECT COUNT(*) FROM matchs WHERE user_id = :userId AND isExample = 0")
     fun getMatchCount(userId: String): Int
 
-    @Query("SELECT PRINTF('%02d:%02d:%02d', totalSeconds / 3600, (totalSeconds % 3600) / 60, totalSeconds % 60) AS totalDuration FROM (SELECT SUM( CAST(SUBSTR(total_time, 1, 2) AS INTEGER) * 3600 + CAST(SUBSTR(total_time, 4, 2) AS INTEGER) * 60 + CAST(SUBSTR(total_time, 7, 2) AS INTEGER) ) AS totalSeconds FROM matchs WHERE isExample = 0)")
-    fun getTotalDuration(): String
+    @Query("SELECT PRINTF('%02d:%02d:%02d', totalSeconds / 3600, (totalSeconds % 3600) / 60, totalSeconds % 60) AS totalDuration FROM (SELECT SUM( CAST(SUBSTR(total_time, 1, 2) AS INTEGER) * 3600 + CAST(SUBSTR(total_time, 4, 2) AS INTEGER) * 60 + CAST(SUBSTR(total_time, 7, 2) AS INTEGER) ) AS totalSeconds FROM matchs WHERE isExample = 0 AND user_id = :id)")
+    fun getTotalDuration(id: String): String
 
     @Query("SELECT * FROM matchs WHERE user_id = :id AND isExample = 1")
     suspend fun getExampleMatch(id: String): Match?
 
+    @Query("SELECT * FROM matchs WHERE user_id = :id")
+    suspend fun getAllUserMatches(id: String): List<Match>
 
 
 

@@ -1,5 +1,6 @@
 package com.example.footballstatistics_app_android.pages
 
+import DistanceLineChart
 import HeatmapChart
 import android.os.Build
 import android.util.Log
@@ -58,6 +59,7 @@ import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
 import androidx.compose.runtime.collectAsState
 import com.example.footballstatistics_app_android.Screen
+import com.example.footballstatistics_app_android.charts.DistanceBarChart
 //import com.example.footballstatistics_app_android.charts.DistanceLineChart
 import com.example.footballstatistics_app_android.charts.TimeInSideChart
 import com.example.footballstatistics_app_android.charts.TimelineChart
@@ -234,11 +236,11 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = "CHART - HEATMAP",
+            text = "LOCATION HEATMAP",
             fontFamily = RobotoCondensed,
-            fontSize = 32.sp,
+            fontSize = 26.sp,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
@@ -246,93 +248,57 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         Column (Modifier.padding(horizontal = 36.dp )){
             HeatmapChart( match_id )
         }
-        Spacer(modifier = Modifier.height(16.dp))
+
+        Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = "CHART - TIME IN SIDE",
+            text = "POSITIONING OVER TIME BY SIDE",
             fontFamily = RobotoCondensed,
-            fontSize = 32.sp,
+            fontSize = 26.sp,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 36.dp )){
-            TimeInSideChart(match_id, blue, green)
+            TimeInSideChart(match_id, yellow, green)
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        /*Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "CHART - TIMELINE",
             fontFamily = RobotoCondensed,
-            fontSize = 32.sp,
+            fontSize = 26.sp,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 36.dp )){
             TimelineChart(match_id, blue)
-        }
-        /*Spacer(modifier = Modifier.height(16.dp))
+        }*/
+
+        Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = "CHART - DISTANCE PER MINUTE",
+            text = "TOTAL DISTANCE OVER TIME",
             fontFamily = RobotoCondensed,
-            fontSize = 32.sp,
+            fontSize = 26.sp,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 36.dp )){
             DistanceLineChart(match_id, blue)
-        }*/
+        }
 
-
-
-        /*Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = "STATISTICS (Example)",
-            fontFamily = LeagueGothic,
-            fontSize = 32.sp,
+            text = "DISTANCE PER MINUTE",
+            fontFamily = RobotoCondensed,
+            fontSize = 26.sp,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 32.dp)) {
-            ColorBar(
-                text = "DEFENSIVE ACTIONS",
-                value = "30",
-                bgcolor = yellow,
-                textcolor = black,
-                width = 500.dp,
-                height = 50.dp
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            ColorBar(
-                text = "ATTACKING ACTION",
-                value = "27",
-                bgcolor = green,
-                textcolor = black,
-                width = 500.dp,
-                height = 50.dp
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            ColorBar(
-                text = "JUMPS ",
-                value = "10",
-                bgcolor = blue,
-                textcolor = black,
-                width = 500.dp,
-                height = 50.dp
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            ColorBar(
-                text = "FALL/FOULS ",
-                value = "5",
-                bgcolor = red,
-                textcolor = black,
-                width = 500.dp,
-                height = 50.dp
-            )
-        }*/
+        Column (Modifier.padding(horizontal = 36.dp )){
+            DistanceBarChart(match_id, blue)
+        }
         Spacer(modifier = Modifier.height(30.dp))
     }
 }

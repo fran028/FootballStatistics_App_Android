@@ -64,16 +64,16 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
 
     private fun createLocationFromCsvRow(row: Array<String>, matchId: String): Location? {
         // Check if the row has the correct number of columns
-        if (row.size != 5) {
+        if (row.size != 3) {
             Log.e("LocationViewModel", "Skipping row with incorrect number of columns: ${row.contentToString()}")
             return null
         }
         return try {
             Location(
                 match_id = matchId,
-                latitude = row[2],
-                longitude = row[3],
-                timestamp = row[4],
+                latitude = row[0],
+                longitude = row[1],
+                timestamp = row[2].substringBefore("."),
             )
         } catch (e: NumberFormatException) {
             Log.e("LocationViewModel", "Error parsing numbers from row: ${row.contentToString()}", e)

@@ -45,6 +45,7 @@ import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.math.absoluteValue
 
 @Composable
 fun TimeInSideChart(match_id: Int, color_left: Color = blue, color_right: Color = yellow) {
@@ -114,17 +115,30 @@ private fun NoDataAvailable(text: String) {
 @Composable
 fun SideChart(locationDataList: List<Location?>, match: Match, color_left: Color, color_right: Color){
     val height = 264.dp
-    val halfPitch = match.kickoff_location.split(",")[1].toDouble()
+    var leftSide = match.home_corner_location.split(",").get(1).toDouble().absoluteValue
+    var righSide = match.away_corner_location.split(",").get(1).toDouble().absoluteValue
+    if(leftSide > righSide){
+        val aux = leftSide
+        leftSide = righSide
+        righSide = aux
+    }
+
+    val diff = righSide - leftSide
+    Log.d("TimeChart", "Left side: $leftSide")
+    Log.d("TimeChart", "Right side: $righSide")
+    val halfPitch = leftSide + diff/2
     Log.d("TimeChart", "Half pitch: $halfPitch")
     var leftCount = 0
     var rightCount = 0
     val total = locationDataList.size
     locationDataList.forEach { location ->
         if (location != null) {
-            val latitude = location.longitude.toDouble()
+            val latitude = location.longitude.toDouble().absoluteValue
             if (latitude < halfPitch) {
+                Log.d("TimeChart", "Left Latitude: $latitude / Half pitch: $halfPitch")
                 leftCount++
             } else {
+                Log.d("TimeChart", "Right Latitude: $latitude / Half pitch: $halfPitch")
                 rightCount++
             }
         }
@@ -167,13 +181,13 @@ fun SideChart(locationDataList: List<Location?>, match: Match, color_left: Color
                 modifier = Modifier
                     .fillMaxWidth(0.5f)
                     .height(leftSize.dp)
-                    .background(color_left)
+                    .background(color_left.copy(alpha = 0.9f))
             )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(rightSize.dp)
-                    .background(color_right)
+                    .background(color_right.copy(alpha = 0.9f))
             )
         }
         Row (

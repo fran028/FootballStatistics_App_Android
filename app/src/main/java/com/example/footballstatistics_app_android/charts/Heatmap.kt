@@ -1,5 +1,6 @@
 import android.graphics.BlurMaskFilter
 import android.graphics.Paint
+import android.graphics.Shader
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -23,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.LinearGradient
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
@@ -35,7 +37,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.footballstatistics_app_android.R
 import com.example.footballstatistics_app_android.Theme.black
 import com.example.footballstatistics_app_android.Theme.blue
+import com.example.footballstatistics_app_android.Theme.green
+import com.example.footballstatistics_app_android.Theme.red
 import com.example.footballstatistics_app_android.Theme.white
+import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.data.AppDatabase
 import com.example.footballstatistics_app_android.data.Location
 import com.example.footballstatistics_app_android.data.LocationRepository
@@ -46,6 +51,12 @@ import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.math.absoluteValue
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 import kotlin.text.first
 import kotlin.text.forEach
 import kotlin.text.split
@@ -66,35 +77,44 @@ fun HeatmapChart(match_id: Int, color: Color = blue) {
     val matchViewModelFactory = MatchViewModelFactory(matchRepository)
     val matchViewModel: MatchViewModel = viewModel(factory = matchViewModelFactory)
 
-    // Pitch corners (you can adjust these as needed)
-    val pitchMinLat = 51.75312
-    val pitchMaxLat = 51.75328
-    val pitchMinLon = -1.22835
-    val pitchMaxLon = -1.22820
-
-    // Pitch dimensions in meters (adjust these as needed)
-    val pitchWidthInMeters = 105.0
-    val pitchHeightInMeters = 68.0
     var isLoading by remember { mutableStateOf(true) }
-
-    val locationDataList by locationViewModel.locations.collectAsState(initial = emptyList())
-    var hasLocation by remember { mutableStateOf(false) }
+    val match by matchViewModel.match.collectAsState()
+    val locationDataList by locationViewModel.locations.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
-        scope.launch(Dispatchers.IO) {
-            Log.d("HeatmapChart", "Getting locations for match: $match_id")
-            hasLocation = locationViewModel.checkIfMatchHasLocation(match_id.toString())
-            if (hasLocation) {
-                locationViewModel.getLocationsByMatchId(match_id.toString())
-                Log.d("HeatmapChart", "Locations gotten for match: $match_id")
-            } else {
-                Log.d("HeatmapChart", "No locations found for match: $match_id")
+        Log.d("HeatmapChart", "Getting locations for match: $match_id")
+        matchViewModel.getMatch(match_id)
+    }
+
+    var pitchMinLat by remember { mutableDoubleStateOf(0.00) }
+    var pitchMinLon by remember { mutableDoubleStateOf(0.00) }
+    var pitchMaxLat by remember { mutableDoubleStateOf(0.00) }
+    var pitchMaxLon by remember { mutableDoubleStateOf(0.00) }
+
+    LaunchedEffect(key1 = match) {
+        if(match != null) {
+            pitchMinLat = match?.home_corner_location?.split(",")?.get(0)?.toDouble()?.absoluteValue ?: 0.00
+            pitchMinLon = match?.home_corner_location?.split(",")?.get(1)?.toDouble()?.absoluteValue ?: 0.00
+            pitchMaxLat = match?.away_corner_location?.split(",")?.get(0)?.toDouble()?.absoluteValue ?: 0.00
+            pitchMaxLon = match?.away_corner_location?.split(",")?.get(1)?.toDouble()?.absoluteValue ?: 0.00
+            if(pitchMinLat > pitchMaxLat) {
+                val auxLat = pitchMinLat
+                pitchMinLat = pitchMaxLat
+                pitchMaxLat = auxLat
             }
+            if(pitchMinLon > pitchMaxLon) {
+                val auxLon = pitchMinLon
+                pitchMinLon = pitchMaxLon
+                pitchMaxLon = auxLon
+            }
+            Log.d( "HeatmapChart", "Pitch locations set minLat: $pitchMinLat, maxLat: $pitchMaxLat, minLon: $pitchMinLon, maxLon: $pitchMaxLon")
+
+            locationViewModel.getLocationsByMatchId(match_id.toString())
         }
     }
 
     LaunchedEffect(key1 = locationDataList) {
-        Log.d("HeatmapChart", "Pitch locations set minLat: $pitchMinLat, maxLat: $pitchMaxLat, minLon: $pitchMinLon, maxLon: $pitchMaxLon")
+        Log.d("HeatmapChart", "Location data list size: ${locationDataList.size}")
         isLoading = false
     }
 
@@ -104,7 +124,7 @@ fun HeatmapChart(match_id: Int, color: Color = blue) {
     } else {
         if (locationDataList.isNotEmpty()) {
             Log.d("HeatmapChart", "Drawing heatmap for match: $match_id")
-            CustomHeatmap(locationDataList, pitchMinLat, pitchMaxLat, pitchMinLon, pitchMaxLon, pitchWidthInMeters, pitchHeightInMeters, color)
+            CustomHeatmap(locationDataList, pitchMinLat, pitchMaxLat, pitchMinLon, pitchMaxLon, color)
         } else {
             Log.d("HeatmapChart", "No available data for match: $match_id")
             NoDataAvailable("No available data")
@@ -134,8 +154,6 @@ fun CustomHeatmap(
     pitchMaxLat: Double,
     pitchMinLon: Double,
     pitchMaxLon: Double,
-    pitchWidthInMeters: Double,
-    pitchHeightInMeters: Double,
     color: Color,
 ) {
     Log.d("CustomHeatmap", "Drawing heatmap")
@@ -154,8 +172,8 @@ fun CustomHeatmap(
             Log.d("CustomHeatmap", "Canvas dimensions: $canvasWidth x $canvasHeight")
 
             val pitchPoints = locationDataList.map { location ->
-                val latitude = location?.latitude?.toDouble() ?: 0.00
-                val longitude = location?.longitude?.toDouble() ?: 0.00
+                val latitude = location?.latitude?.toDouble()?.absoluteValue ?: 0.00
+                val longitude = location?.longitude?.toDouble()?.absoluteValue ?: 0.00
                 mapToPitch(
                     latitude,
                     longitude,
@@ -163,32 +181,30 @@ fun CustomHeatmap(
                     pitchMinLon,
                     pitchMaxLat,
                     pitchMaxLon,
-                    pitchWidthInMeters,
-                    pitchHeightInMeters
+                    canvasWidth,
+                    canvasHeight
                 )
             }
             Log.d("CustomHeatmap", "Pitch points size: ${pitchPoints.size}")
             Log.d("CustomHeatmap", "Pitch points Set")
-
-            // Density Calculation
-            val gridSize = 20.0 // Size of each grid cell in pitch units (e.g., 5 meters)
+            val cellSize = size.width / 25
             val grid = mutableMapOf<Pair<Int, Int>, Int>()
             var maxDensity = 0
             pitchPoints.forEach { point ->
                 // Calculate the correct grid X and Y for the canvas
-                val gridX = (point.x / gridSize).toInt()
-                val gridY = (point.y / gridSize).toInt()
-
+                val gridX = (point.x / cellSize).toInt()
+                val gridY = (point.y / cellSize).toInt()
                 val density = grid.getOrDefault(Pair(gridX, gridY), 0) + 1
+
+                Log.d("CustomHeatmap", "Point x: ${point.x}, Point y: ${point.y} , Grid X: $gridX, Grid Y: $gridY, Density: $density")
+
                 grid[Pair(gridX, gridY)] = density
                 maxDensity = if (density > maxDensity) density else maxDensity
             }
-            Log.d("CustomHeatmap", "Pitch points size: ${pitchPoints.size}")
+            Log.d("CustomHeatmap", "grid size: ${grid.size}")
             Log.d("CustomHeatmap", "Max density: $maxDensity")
             // Calculate the blur radius
-            val calculatedBlurRadius = (gridSize / 2).toFloat()
-            Log.d("CustomHeatmap", "Calculated Blur radius: $calculatedBlurRadius")
-            //Check if the calculated radius is valid.
+            val calculatedBlurRadius = (cellSize / 10)
             val blurRadius = if (calculatedBlurRadius.isFinite() && calculatedBlurRadius >= 0.5f) {
                 calculatedBlurRadius
             } else {
@@ -198,48 +214,52 @@ fun CustomHeatmap(
             Log.d("CustomHeatmap", "Blur radius: $blurRadius")
             drawIntoCanvas { canvas ->
                 val nativeCanvas = canvas.nativeCanvas
-                val nativePaint = androidx.compose.ui.graphics.Paint().apply {
+
+                val nativePaint = Paint().apply { // This is the correct Paint
                     maskFilter = BlurMaskFilter(blurRadius, BlurMaskFilter.Blur.NORMAL)
                     isAntiAlias = true
+                    alpha = 255
                 }
-                Log.d("CustomHeatmap", "Drawing heatmap")
-                // Define a scale ratio for the rectangles
-                val scaleWidth = canvasWidth / pitchWidthInMeters
-                val scaleHeight = canvasHeight / pitchHeightInMeters
 
+                Log.d("CustomHeatmap", "Drawing heatmap")
                 grid.forEach { (gridCoord) ->
                     val gridX = gridCoord.first
                     val gridY = gridCoord.second
                     val density = grid[gridCoord] ?: 0
-
                     nativePaint.color = color.toArgb()
                     if (maxDensity > 0) {
                         nativePaint.alpha = (255 * (density.toFloat() / maxDensity.toFloat())).toInt()
                     } else {
-                        nativePaint.alpha = 0
+                        nativePaint.alpha = 1
+                    }
+                    if (nativePaint.alpha < 20) {
+                        nativePaint.alpha = 20
                     }
 
-                    val rectLeft = (gridX * gridSize * scaleWidth).toFloat()
-                    val rectTop = (gridY * gridSize * scaleHeight).toFloat()
-                    val rectRight = rectLeft + (gridSize * scaleWidth).toFloat()
-                    val rectBottom = rectTop + (gridSize * scaleHeight).toFloat()
+                    Log.d("CustomHeatmap", "Drawing heatmap point: $gridX, $gridY, density: $density, alpha: ${nativePaint.alpha}")
+
+                    val top = (gridY * cellSize)
+                    val bottom = top + cellSize
+                    val left = (gridX * cellSize )
+                    val right = left + cellSize
 
                     nativeCanvas.drawRect(
-                        rectLeft,
-                        rectTop,
-                        rectRight,
-                        rectBottom,
+                        left,
+                        top,
+                        right,
+                        bottom,
                         nativePaint
                     )
                 }
             }
             Log.d("CustomHeatmap", "Heatmap drawn")
         }
+
         Image(
             painter = painterResource(id = R.drawable.pitch_transparent),
             contentDescription = "Soccer Pitch Image",
-            modifier = Modifier.matchParentSize(), // Fills the parent (Box)
-            contentScale = ContentScale.FillBounds // Scales to fill bounds
+            modifier = Modifier.matchParentSize(),
+            contentScale = ContentScale.FillBounds
         )
     }
 }
@@ -248,23 +268,30 @@ fun mapToPitch(
     latitude: Double, longitude: Double,
     pitchMinLat: Double, pitchMinLon: Double,
     pitchMaxLat: Double, pitchMaxLon: Double,
-    pitchWidthInMeters: Double, pitchHeightInMeters: Double,
+    canvasWidth: Float, canvasHeight: Float,
 ): Offset {
+    Log.d("CustomHeatmap", "-------------------------------------------------")
+    Log.d("CustomHeatmap", "Mapping location: ($latitude / $longitude). ")
+    Log.d("CustomHeatmap", "To Pitch:  ($pitchMinLat / $pitchMinLon) - ($pitchMaxLat / $pitchMaxLon)")
+    val clampedLat = latitude.coerceIn(pitchMinLat, pitchMaxLat)
+    val clampedLon = longitude.coerceIn(pitchMinLon, pitchMaxLon)
 
-    // Calculate the difference between the max and min of latitude and longitude
     val latDifference = pitchMaxLat - pitchMinLat
     val lonDifference = pitchMaxLon - pitchMinLon
 
-    // Calculate the normalized position of the longitude and latitude
-    val normalizedLon = (longitude - pitchMinLon) / lonDifference
-    val normalizedLat = (latitude - pitchMinLat) / latDifference
+    if (latDifference <= 0.0 || lonDifference <= 0.0) {
+        Log.w("CustomHeatmap", "Invalid pitch dimensions: latDifference=$latDifference, lonDifference=$lonDifference")
+        return Offset(canvasWidth/2, canvasHeight/2)
+    }
 
-    // Scale the normalized values to the pitch dimensions
-    val pitchX = normalizedLon * pitchWidthInMeters
-    val pitchY = normalizedLat * pitchHeightInMeters
+    val normalizedLat = (clampedLat - pitchMinLat) / latDifference
+    val normalizedLon = (clampedLon - pitchMinLon) / lonDifference
+    val invertedNormalizedLat = 1.0 - normalizedLat
 
-    // Ensure the y-axis is inverted for canvas mapping.
-    val invertedPitchY = pitchHeightInMeters - pitchY
+    Log.d("CustomHeatmap", "To Normalized:  ($invertedNormalizedLat / $normalizedLon)")
 
-    return Offset(pitchX.toFloat(), invertedPitchY.toFloat())
+    val pitchX = normalizedLon * canvasWidth
+    val pitchY = invertedNormalizedLat * canvasHeight
+    Log.d("CustomHeatmap", "To Canvas:  ($pitchX / $pitchY)")
+    return Offset(pitchX.toFloat(), pitchY.toFloat())
 }

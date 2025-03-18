@@ -23,8 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -40,21 +38,17 @@ import com.example.footballstatistics_app_android.data.Location
 import com.example.footballstatistics_app_android.data.LocationRepository
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModelFactory
-//import com.madrapps.plot.line.DataPoint
-//import com.madrapps.plot.line.LineGraph
-//import com.madrapps.plot.line.LinePlot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.io.path.moveTo
 import kotlin.math.roundToInt
-import kotlin.text.toFloat
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DistanceBarChart(match_id: Int, color: Color = blue, minuteInterval: Int = 5) {
+fun DistanceBarChart(matchId: Int, color: Color = blue, minuteInterval: Int = 5) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    // Get data from database
     val database = AppDatabase.getDatabase(context)
     val locationRepository = LocationRepository(database.locationDao())
     val locationViewModelFactory = LocationViewModelFactory(locationRepository)
@@ -64,36 +58,41 @@ fun DistanceBarChart(match_id: Int, color: Color = blue, minuteInterval: Int = 5
     var hasLocation by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
 
+    // Check if there is a location for the match
     LaunchedEffect(key1 = Unit) {
         scope.launch(Dispatchers.IO) {
-            Log.d("DistanceLineChart", "Getting locations for match: $match_id")
-            hasLocation = locationViewModel.checkIfMatchHasLocation(match_id.toString())
+            Log.d("com.example.footballstatistics_app_android.charts.DistanceLineChart", "Getting locations for match: $matchId")
+            hasLocation = locationViewModel.checkIfMatchHasLocation(matchId.toString())
             if (hasLocation) {
-                locationViewModel.getLocationsByMatchId(match_id.toString())
+                locationViewModel.getLocationsByMatchId(matchId.toString())
             } else {
-                Log.d("DistanceLineChart", "No locations found for match: $match_id")
+                Log.d("com.example.footballstatistics_app_android.charts.DistanceLineChart", "No locations found for match: $matchId")
             }
         }
     }
 
+    // Once we have the locations, draw the chart
     LaunchedEffect(key1 = locationDataList) {
         isLoading = false
     }
 
     if (isLoading) {
-        Log.d("DistanceLineChart", "Loading...")
+        Log.d("com.example.footballstatistics_app_android.charts.DistanceLineChart", "Loading...")
+        // Show Loading screen
         NoDataAvailable("Loading...")
     } else {
         if (locationDataList.isNotEmpty()) {
-            Log.d("DistanceLineChart", "Drawing linechart for match: $match_id")
-            LineChartCompose(locationDataList, color)
+            // Draw line chart
+            Log.d("com.example.footballstatistics_app_android.charts.DistanceLineChart", "Drawing linechart for match: $matchId")
+            LineChartCompose(locationDataList, color, minuteInterval)
         } else {
-            Log.d("DistanceLineChart", "No available data for match: $match_id")
+            Log.d("com.example.footballstatistics_app_android.charts.DistanceLineChart", "No available data for match: $matchId")
             NoDataAvailable("No available data")
         }
     }
 }
 
+// Show text that inform the user about the possible state of the chart
 @Composable
 private fun NoDataAvailable(text: String) {
     Box(
@@ -109,6 +108,8 @@ private fun NoDataAvailable(text: String) {
     }
 }
 
+// Transform the data to fit the chart
+// Calls the DistanceLineChart Compose function and sets it in a compose element
 @Composable
 fun LineChartCompose(locations: List<Location?>, color: Color, minuteInterval: Int = 5) {
     Box(
@@ -123,6 +124,8 @@ fun LineChartCompose(locations: List<Location?>, color: Color, minuteInterval: I
     }
 }
 
+// Gets the transformed data as a parameter
+// And draws it in a canvas
 @Composable
 fun DrawBarChart(distanceData: Map<Int, Double>, color: Color, minuteInterval: Int) {
     val textMeasurer = rememberTextMeasurer()
@@ -191,16 +194,16 @@ fun DrawBarChart(distanceData: Map<Int, Double>, color: Color, minuteInterval: I
                     )
                 )
             }
-            val timeLabelInterval = minuteInterval
-            val firstLabel = distanceData.keys.minOrNull() ?: 0
+
+            // Draw time labels (x-axis)
             val lastLabel = distanceData.keys.maxOrNull() ?: 0
 
-            val timeLabelCount = lastLabel/timeLabelInterval + 1
+            val timeLabelCount = lastLabel/minuteInterval + 1
             for (i in 0 until timeLabelCount) {
-                val time = i * timeLabelInterval
+                val time = i * minuteInterval
 
                 if(time <= lastLabel){
-                    val xPos = (time.toFloat() / timeLabelInterval) * barWidth + barWidth/2
+                    val xPos = (time.toFloat() / minuteInterval) * barWidth + barWidth/2
                     val textLayoutResult = textMeasurer.measure(
                         text = "$time", // Show the minute
                         style = TextStyle(color = Color.White, fontSize = 10.sp)
@@ -215,11 +218,13 @@ fun DrawBarChart(distanceData: Map<Int, Double>, color: Color, minuteInterval: I
     }
 }
 
-fun roundToTwoDecimals(number: Double): Double {
+private fun roundToTwoDecimals(number: Double): Double {
     val formattedNumber = String.format("%.2f", number)
     return formattedNumber.toDouble()
 }
 
+// Calculates the total distance between every consecutive location
+// And split it for a certain interval of minutes
 fun calculateDistancePer5Minutes(locations: List<Location?>, minuteInterval : Int = 5): Map<Int, Double> {
     val distancePerMinutes = mutableMapOf<Int, Double>()
     if (locations.size < 2) {
@@ -234,7 +239,7 @@ fun calculateDistancePer5Minutes(locations: List<Location?>, minuteInterval : In
             val minute =
                 ((loc2!!.timestamp.toDouble() - firstTimestamp.toDouble()) / 1000 / 60).roundToInt()
             // Calculate the 5-minute interval
-            val minuteInterval = (minute / minuteInterval) * minuteInterval
+            val minuteSpaced = (minute / minuteInterval) * minuteInterval
 
             val result = FloatArray(1)
             AndroidLocation.distanceBetween(
@@ -247,8 +252,8 @@ fun calculateDistancePer5Minutes(locations: List<Location?>, minuteInterval : In
             val distance = result[0].toDouble()
 
             // Update the total distance for the 5-minute interval
-            distancePerMinutes[minuteInterval] =
-                distancePerMinutes.getOrDefault(minuteInterval, 0.0) + distance
+            distancePerMinutes[minuteSpaced] =
+                distancePerMinutes.getOrDefault(minuteSpaced, 0.0) + distance
         }
     }
     return distancePerMinutes

@@ -1,7 +1,5 @@
 package com.example.footballstatistics_app_android.pages
 
-
-import HeatmapChart
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -41,6 +39,7 @@ import com.example.footballstatistics_app_android.Theme.black
 import com.example.footballstatistics_app_android.Theme.green
 import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
+import com.example.footballstatistics_app_android.charts.HeatmapChart
 import com.example.footballstatistics_app_android.components.ButtonIconObject
 import com.example.footballstatistics_app_android.components.ViewTitle
 import com.example.footballstatistics_app_android.data.AppDatabase

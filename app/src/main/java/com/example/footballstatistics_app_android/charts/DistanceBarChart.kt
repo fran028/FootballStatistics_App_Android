@@ -178,8 +178,9 @@ fun DrawBarChart(distanceData: Map<Int, Double>, color: Color, minuteInterval: I
                 val yPos = height - (i.toFloat() / (distanceLabelCount - 1).toFloat()) * height
                 val distanceValue =
                     (maxDistance * (i.toFloat() / (distanceLabelCount - 1).toFloat())).roundToInt()
+                val distanceValueInKilometers = roundToTwoDecimals(distanceValue / 1000.0)
                 val textLayoutResult = textMeasurer.measure(
-                    text = "$distanceValue m",
+                    text = "$distanceValueInKilometers m",
                     style = TextStyle(color = Color.White, fontSize = 10.sp)
                 )
                 drawText(
@@ -206,12 +207,17 @@ fun DrawBarChart(distanceData: Map<Int, Double>, color: Color, minuteInterval: I
                     )
                     drawText(
                         textLayoutResult,
-                        topLeft = Offset(xPos - textLayoutResult.size.width / 2.toFloat(), height)
+                        topLeft = Offset(xPos - textLayoutResult.size.width / 2.toFloat(), height+5)
                     )
                 }
             }
         }
     }
+}
+
+fun roundToTwoDecimals(number: Double): Double {
+    val formattedNumber = String.format("%.2f", number)
+    return formattedNumber.toDouble()
 }
 
 fun calculateDistancePer5Minutes(locations: List<Location?>, minuteInterval : Int = 5): Map<Int, Double> {

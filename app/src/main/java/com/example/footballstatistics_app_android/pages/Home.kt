@@ -110,7 +110,7 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        ViewTitle(title = "FULBO STATS", R.drawable.home_img)
+        ViewTitle(title = "FULBO STATS", R.drawable.home_img, navController)
         Spacer(modifier = Modifier.height(24.dp))
         Row(horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,

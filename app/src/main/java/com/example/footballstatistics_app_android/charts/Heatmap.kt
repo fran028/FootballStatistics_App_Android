@@ -1,9 +1,7 @@
 import android.graphics.BlurMaskFilter
 import android.graphics.Paint
-import android.graphics.Shader
 import android.util.Log
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,26 +19,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.LinearGradient
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.text.color
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.footballstatistics_app_android.R
 import com.example.footballstatistics_app_android.Theme.black
 import com.example.footballstatistics_app_android.Theme.blue
-import com.example.footballstatistics_app_android.Theme.green
-import com.example.footballstatistics_app_android.Theme.red
 import com.example.footballstatistics_app_android.Theme.white
-import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.data.AppDatabase
 import com.example.footballstatistics_app_android.data.Location
 import com.example.footballstatistics_app_android.data.LocationRepository
@@ -49,19 +39,9 @@ import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModelFactory
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sin
-import kotlin.math.sqrt
-import kotlin.text.first
-import kotlin.text.forEach
 import kotlin.text.split
 import kotlin.text.toDouble
-import kotlin.text.toFloat
 
 @Composable
 fun HeatmapChart(match_id: Int, color: Color = blue) {
@@ -205,12 +185,13 @@ fun CustomHeatmap(
             Log.d("CustomHeatmap", "Max density: $maxDensity")
             // Calculate the blur radius
             val calculatedBlurRadius = (cellSize / 10)
-            val blurRadius = if (calculatedBlurRadius.isFinite() && calculatedBlurRadius >= 0.5f) {
+            var blurRadius = if (calculatedBlurRadius.isFinite() && calculatedBlurRadius >= 0.5f) {
                 calculatedBlurRadius
             } else {
                 Log.w("CustomHeatmap", "Invalid blur radius: $calculatedBlurRadius, using default radius.")
                 5f // Use a default radius.
             }
+            blurRadius = 1F
             Log.d("CustomHeatmap", "Blur radius: $blurRadius")
             drawIntoCanvas { canvas ->
                 val nativeCanvas = canvas.nativeCanvas
@@ -239,10 +220,15 @@ fun CustomHeatmap(
                     Log.d("CustomHeatmap", "Drawing heatmap point: $gridX, $gridY, density: $density, alpha: ${nativePaint.alpha}")
 
                     val top = (gridY * cellSize)
-                    val bottom = top + cellSize
+                    var bottom = top + cellSize
                     val left = (gridX * cellSize )
-                    val right = left + cellSize
-
+                    var right = left + cellSize
+                    if(right > canvasWidth) {
+                        right = canvasWidth
+                    }
+                    if(bottom > canvasHeight) {
+                        bottom = canvasHeight
+                    }
                     nativeCanvas.drawRect(
                         left,
                         top,
@@ -251,16 +237,79 @@ fun CustomHeatmap(
                         nativePaint
                     )
                 }
+
+                // Draw pitch
+                val lineThickness = 5.dp.toPx()
+                val lineOffset = lineThickness/2
+
+                //left line
+                drawLine(
+                    color = white,
+                    start = Offset(0f, 0f-lineOffset),
+                    end = Offset(0f, size.height+lineOffset),
+                    strokeWidth = lineThickness
+                )
+                //top line
+                drawLine(
+                    color = white,
+                    start = Offset(0f, 0f),
+                    end = Offset(size.width, 0f),
+                    strokeWidth = lineThickness
+                )
+                //Bottom Line
+                drawLine(
+                    color = white,
+                    start = Offset(0f, size.height),
+                    end = Offset(size.width, size.height),
+                    strokeWidth = lineThickness
+                )
+                //right line
+                drawLine(
+                    color = white,
+                    start = Offset(size.width, 0f-lineOffset),
+                    end = Offset(size.width, size.height+lineOffset),
+                    strokeWidth = lineThickness
+                )
+                //Middle line
+                drawLine(
+                    color = white,
+                    start = Offset(size.width/2, 0f),
+                    end = Offset(size.width/2, size.height),
+                    strokeWidth = lineThickness
+                )
+                //center circle
+                drawCircle(
+                    color = white,
+                    radius = 100f,
+                    center = Offset(size.width/2, size.height/2),
+                    style = Stroke(width = lineThickness)
+                )
+                //left area
+                drawRect(
+                    color = white,
+                    topLeft = Offset(0f, size.height/4),
+                    size = androidx.compose.ui.geometry.Size(size.width/10, size.height - size.height/2),
+                    style = Stroke(width = lineThickness)
+                )
+                //right area
+                drawRect(
+                    color = white,
+                    topLeft = Offset(size.width - size.width/10, size.height/4),
+                    size = androidx.compose.ui.geometry.Size(size.width/10, size.height - size.height/2),
+                    style = Stroke(width = lineThickness)
+                )
+
+
             }
             Log.d("CustomHeatmap", "Heatmap drawn")
         }
 
-        Image(
-            painter = painterResource(id = R.drawable.pitch_transparent),
-            contentDescription = "Soccer Pitch Image",
-            modifier = Modifier.matchParentSize(),
-            contentScale = ContentScale.FillBounds
-        )
+//        Image(
+//            painter = painterResource(id = R.drawable.pitch_transparent),
+//            contentDescription = "Soccer Pitch Image",
+//            modifier = Modifier.matchParentSize(),
+//            contentScale = ContentScale.FillBounds
+//        )
     }
 }
 

@@ -123,7 +123,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        ViewTitle(title = "MATCH DATA", image = R.drawable.match_img)
+        ViewTitle(title = "MATCH DATA", image = R.drawable.match_img, navController = navController)
         Spacer(modifier = Modifier.height(24.dp))
         if (currentMatch.isExample) {
             Row (
@@ -246,7 +246,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         )
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 36.dp )){
-            HeatmapChart( match_id )
+            HeatmapChart( match_id, green )
         }
 
         Spacer(modifier = Modifier.height(32.dp))

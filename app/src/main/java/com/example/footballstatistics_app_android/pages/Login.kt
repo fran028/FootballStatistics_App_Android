@@ -168,6 +168,7 @@ fun LoginPage(navController: NavController) {
                             fontSize = 16.sp,
                             fontFamily = RobotoCondensed
                         )
+
                     )
                 },
                 modifier = Modifier

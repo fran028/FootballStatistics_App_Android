@@ -150,7 +150,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        ViewTitle(title = "PROFILE", image = R.drawable.profile_img)
+        ViewTitle(title = "PROFILE", image = R.drawable.profile_img, navController = navController)
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = name,

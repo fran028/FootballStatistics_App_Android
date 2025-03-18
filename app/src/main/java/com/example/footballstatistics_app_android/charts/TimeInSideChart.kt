@@ -21,14 +21,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.footballstatistics_app_android.R
 import com.example.footballstatistics_app_android.Theme.LeagueGothic
 import com.example.footballstatistics_app_android.Theme.black
 import com.example.footballstatistics_app_android.Theme.blue
@@ -46,6 +46,7 @@ import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
+import androidx.compose.foundation.Canvas
 
 @Composable
 fun TimeInSideChart(match_id: Int, color_left: Color = blue, color_right: Color = yellow) {
@@ -210,12 +211,83 @@ fun SideChart(locationDataList: List<Location?>, match: Match, color_left: Color
                 color = fontColor_right
             )
         }
+        Canvas(modifier = Modifier.matchParentSize()) {
+            drawIntoCanvas { canvas ->
+                // Draw pitch
+                val lineThickness = 5.dp.toPx()
+                val lineOffset = lineThickness / 2
 
-        Image(
-            painter = painterResource(id = R.drawable.pitch_transparent),
-            contentDescription = "Soccer Pitch Image",
-            modifier = Modifier.matchParentSize(), // Fills the parent (Box)
-            contentScale = ContentScale.FillBounds // Scales to fill bounds
-        )
+                //left line
+                drawLine(
+                    color = white,
+                    start = Offset(0f, 0f - lineOffset),
+                    end = Offset(0f, size.height + lineOffset),
+                    strokeWidth = lineThickness
+                )
+                //top line
+                drawLine(
+                    color = white,
+                    start = Offset(0f, 0f),
+                    end = Offset(size.width, 0f),
+                    strokeWidth = lineThickness
+                )
+                //Bottom Line
+                drawLine(
+                    color = white,
+                    start = Offset(0f, size.height),
+                    end = Offset(size.width, size.height),
+                    strokeWidth = lineThickness
+                )
+                //right line
+                drawLine(
+                    color = white,
+                    start = Offset(size.width, 0f - lineOffset),
+                    end = Offset(size.width, size.height + lineOffset),
+                    strokeWidth = lineThickness
+                )
+                //Middle line
+                drawLine(
+                    color = white,
+                    start = Offset(size.width / 2, 0f),
+                    end = Offset(size.width / 2, size.height),
+                    strokeWidth = lineThickness
+                )
+                //center circle
+                drawCircle(
+                    color = white,
+                    radius = 100f,
+                    center = Offset(size.width / 2, size.height / 2),
+                    style = Stroke(width = lineThickness)
+                )
+                //left area
+                drawRect(
+                    color = white,
+                    topLeft = Offset(0f, size.height / 4),
+                    size = androidx.compose.ui.geometry.Size(
+                        size.width / 10,
+                        size.height - size.height / 2
+                    ),
+                    style = Stroke(width = lineThickness)
+                )
+                //right area
+                drawRect(
+                    color = white,
+                    topLeft = Offset(size.width - size.width / 10, size.height / 4),
+                    size = androidx.compose.ui.geometry.Size(
+                        size.width / 10,
+                        size.height - size.height / 2
+                    ),
+                    style = Stroke(width = lineThickness)
+                )
+            }
+        }
+
+
+//        Image(
+//            painter = painterResource(id = R.drawable.pitch_transparent),
+//            contentDescription = "Soccer Pitch Image",
+//            modifier = Modifier.matchParentSize(), // Fills the parent (Box)
+//            contentScale = ContentScale.FillBounds // Scales to fill bounds
+//        )
     }
 }

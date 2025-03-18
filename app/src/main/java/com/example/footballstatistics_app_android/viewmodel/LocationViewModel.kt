@@ -73,7 +73,7 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
                 match_id = matchId,
                 latitude = row[0],
                 longitude = row[1],
-                timestamp = row[2].substringBefore("."),
+                timestamp = row[2],
             )
         } catch (e: NumberFormatException) {
             Log.e("LocationViewModel", "Error parsing numbers from row: ${row.contentToString()}", e)

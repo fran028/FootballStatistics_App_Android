@@ -163,7 +163,7 @@ fun CalendarPage(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        ViewTitle(title = "CALENDAR", image = R.drawable.calendar_img)
+        ViewTitle(title = "CALENDAR", image = R.drawable.calendar_img, navController = navController)
         Spacer(modifier = Modifier.height(32.dp))
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

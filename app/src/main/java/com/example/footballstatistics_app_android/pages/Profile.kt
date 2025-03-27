@@ -292,7 +292,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
                 text = "Logout",
                 bgcolor = red,
                 textcolor = black,
-                width = 500.dp,
+                width = 550.dp,
                 height = 60.dp,
                 onClick = {
                     coroutineScope.launch {

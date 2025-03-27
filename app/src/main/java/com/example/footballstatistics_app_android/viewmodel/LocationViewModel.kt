@@ -64,16 +64,16 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
 
     private fun createLocationFromCsvRow(row: Array<String>, matchId: String): Location? {
         // Check if the row has the correct number of columns
-        if (row.size != 3) {
+        if (row.size != 5) {
             Log.e("LocationViewModel", "Skipping row with incorrect number of columns: ${row.contentToString()}")
             return null
         }
         return try {
             Location(
                 match_id = matchId,
-                latitude = row[0],
-                longitude = row[1],
-                timestamp = row[2],
+                latitude = row[2],
+                longitude = row[3],
+                timestamp = row[4],
             )
         } catch (e: NumberFormatException) {
             Log.e("LocationViewModel", "Error parsing numbers from row: ${row.contentToString()}", e)
@@ -268,6 +268,21 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
                 }
             }
             _allMatchesDistance.value = totalDistance
+        }
+    }
+
+    fun deleteLocationsFromMatch(matchId: String){
+        viewModelScope.launch(Dispatchers.IO) {
+            val locations = repository.getLocationsByMatchId(matchId)
+            if (locations != null) {
+                for (location in locations) {
+                    repository.deleteLocation(location)
+                    Log.d("LocationViewModel", "Location deleted: $location")
+                }
+                Log.d("LocationViewModel", "All locations for match $matchId deleted")
+            } else {
+                Log.d("LocationViewModel", "No locations found for match: $matchId")
+            }
         }
     }
 }

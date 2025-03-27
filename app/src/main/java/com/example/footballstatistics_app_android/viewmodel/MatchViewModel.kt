@@ -207,12 +207,12 @@ class MatchViewModel(private val repository: MatchRepository) : ViewModel() {
                 id = 0,
                 user_id = userId,
                 date = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                ini_time = "17:14",
-                end_time = "18:12",
-                total_time = "00:50:54",
-                away_corner_location = "51.7531458,-1.2282278",
-                home_corner_location = "51.7532447,-1.2283335",
-                kickoff_location = "51.7532636,-1.2282153",
+                ini_time = "21:30",
+                end_time = "22:30",
+                total_time = "00:60:00",
+                away_corner_location = "51.74166, -1.228983",
+                home_corner_location = "51.75546, -1.201266",
+                kickoff_location = "51.74933, -1.215799",
                 isExample = true
 
             )

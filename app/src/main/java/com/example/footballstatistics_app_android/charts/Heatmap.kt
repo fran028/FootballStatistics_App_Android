@@ -188,7 +188,7 @@ fun CustomHeatmap(
                 val gridY = (point.y / cellSize).toInt()
                 val density = grid.getOrDefault(Pair(gridX, gridY), 0) + 1
 
-                Log.d("CustomHeatmap", "Point x: ${point.x}, Point y: ${point.y} , Grid X: $gridX, Grid Y: $gridY, Density: $density")
+                //Log.d("CustomHeatmap", "Point x: ${point.x}, Point y: ${point.y} , Grid X: $gridX, Grid Y: $gridY, Density: $density")
 
                 grid[Pair(gridX, gridY)] = density
                 maxDensity = if (density > maxDensity) density else maxDensity
@@ -229,7 +229,7 @@ fun CustomHeatmap(
                         nativePaint.alpha = 20
                     }
 
-                    Log.d("CustomHeatmap", "Drawing heatmap point: $gridX, $gridY, density: $density, alpha: ${nativePaint.alpha}")
+                    //Log.d("CustomHeatmap", "Drawing heatmap point: $gridX, $gridY, density: $density, alpha: ${nativePaint.alpha}")
 
                     val top = (gridY * cellSize)
                     var bottom = top + cellSize
@@ -325,9 +325,9 @@ fun mapToPitch(
     pitchMaxLat: Double, pitchMaxLon: Double,
     canvasWidth: Float, canvasHeight: Float,
 ): Offset {
-    Log.d("CustomHeatmap", "-------------------------------------------------")
-    Log.d("CustomHeatmap", "Mapping location: ($latitude / $longitude). ")
-    Log.d("CustomHeatmap", "To Pitch:  ($pitchMinLat / $pitchMinLon) - ($pitchMaxLat / $pitchMaxLon)")
+//    Log.d("CustomHeatmap", "-------------------------------------------------")
+//    Log.d("CustomHeatmap", "Mapping location: ($latitude / $longitude). ")
+//    Log.d("CustomHeatmap", "To Pitch:  ($pitchMinLat / $pitchMinLon) - ($pitchMaxLat / $pitchMaxLon)")
     val clampedLat = latitude.coerceIn(pitchMinLat, pitchMaxLat)
     val clampedLon = longitude.coerceIn(pitchMinLon, pitchMaxLon)
 
@@ -335,7 +335,7 @@ fun mapToPitch(
     val lonDifference = pitchMaxLon - pitchMinLon
 
     if (latDifference <= 0.0 || lonDifference <= 0.0) {
-        Log.w("CustomHeatmap", "Invalid pitch dimensions: latDifference=$latDifference, lonDifference=$lonDifference")
+//        Log.w("CustomHeatmap", "Invalid pitch dimensions: latDifference=$latDifference, lonDifference=$lonDifference")
         return Offset(canvasWidth/2, canvasHeight/2)
     }
 
@@ -343,10 +343,10 @@ fun mapToPitch(
     val normalizedLon = (clampedLon - pitchMinLon) / lonDifference
     val invertedNormalizedLat = 1.0 - normalizedLat
 
-    Log.d("CustomHeatmap", "To Normalized:  ($invertedNormalizedLat / $normalizedLon)")
+//    Log.d("CustomHeatmap", "To Normalized:  ($invertedNormalizedLat / $normalizedLon)")
 
     val pitchX = normalizedLon * canvasWidth
     val pitchY = invertedNormalizedLat * canvasHeight
-    Log.d("CustomHeatmap", "To Canvas:  ($pitchX / $pitchY)")
+//    Log.d("CustomHeatmap", "To Canvas:  ($pitchX / $pitchY)")
     return Offset(pitchX.toFloat(), pitchY.toFloat())
 }

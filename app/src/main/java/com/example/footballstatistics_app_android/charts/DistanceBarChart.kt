@@ -84,7 +84,7 @@ fun DistanceBarChart(matchId: Int, color: Color = blue, minuteInterval: Int = 5)
         if (locationDataList.isNotEmpty()) {
             // Draw line chart
             Log.d("com.example.footballstatistics_app_android.charts.DistanceLineChart", "Drawing linechart for match: $matchId")
-            LineChartCompose(locationDataList, color, minuteInterval)
+            BarChartCompose(locationDataList, color, minuteInterval)
         } else {
             Log.d("com.example.footballstatistics_app_android.charts.DistanceLineChart", "No available data for match: $matchId")
             NoDataAvailable("No available data")
@@ -111,7 +111,7 @@ private fun NoDataAvailable(text: String) {
 // Transform the data to fit the chart
 // Calls the DistanceLineChart Compose function and sets it in a compose element
 @Composable
-fun LineChartCompose(locations: List<Location?>, color: Color, minuteInterval: Int = 5) {
+fun BarChartCompose(locations: List<Location?>, color: Color, minuteInterval: Int = 5) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -237,7 +237,7 @@ fun calculateDistancePer5Minutes(locations: List<Location?>, minuteInterval : In
         if (index < sortedLocations.size - 1) {
             val loc2 = sortedLocations[index + 1]
             val minute =
-                ((loc2!!.timestamp.toDouble() - firstTimestamp.toDouble()) / 1000 / 60).roundToInt()
+                ((loc2!!.timestamp.toDouble() - firstTimestamp.toDouble()) / 1000 / 60 / 2).roundToInt()
             // Calculate the 5-minute interval
             val minuteSpaced = (minute / minuteInterval) * minuteInterval
 

@@ -2,8 +2,10 @@ package com.example.footballstatistics_app_android
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.content.BroadcastReceiver
+import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
@@ -75,8 +77,11 @@ import com.example.footballstatistics_app_android.Theme.blue
 import com.example.footballstatistics_app_android.Theme.gray
 import android.content.Context
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresPermission
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import java.util.HashSet
+import kotlin.io.path.name
 
 data class BottomNavigationItem(
     val title: String,
@@ -88,57 +93,69 @@ data class BottomNavigationItem(
 )
 
 class MainActivity : ComponentActivity() {
+    private val TAG = "MainActivity"
+    private val requiredPermissions = arrayOf(
+        Manifest.permission.BLUETOOTH_ADMIN,
+        Manifest.permission.BLUETOOTH,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.POST_NOTIFICATIONS,
+        Manifest.permission.FOREGROUND_SERVICE
+    )
 
     private var isBluetoothConnected = mutableStateOf(false)
     lateinit var container: AppContainer
-    private lateinit var dataTransferReceiver: DataTransferReceiver
-    private lateinit var bluetoothConnectionReceiver: BluetoothConnectionReceiver
-
-    private val requestPermissionLauncher =
+    private val dataTransferReceiver = DataTransferReceiver {
+        Log.d("DataTransferReceiver", "Data transfer complete")
+        runOnUiThread { recreate() }
+    }
+    /*private val bluetoothConnectionReceiver = BluetoothConnectionReceiver { isConnected ->
+        isBluetoothConnected.value = isConnected
+    }*/
+    /*private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
                 // Permission is granted. Continue the action or workflow in your app.
-                Log.d("MainActivity", "BLUETOOTH_CONNECT permission granted")
+                Log.d(TAG, "BLUETOOTH_CONNECT permission granted")
             } else {
                 // Explain to the user that the feature is unavailable because the
                 // feature requires a permission that the user has denied.
-                Log.w("MainActivity", "BLUETOOTH_CONNECT permission denied")
+                Log.w(TAG, "BLUETOOTH_CONNECT permission denied")
             }
-        }
+        }*/
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d("MainActivity", "onCreate called")
+        Log.d(TAG, "onCreate called")
         super.onCreate(savedInstanceState)
 
         container = (applicationContext as FootballStatisticsApplication).container
 
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
+        Log.d(TAG, "bluetooth permission checked")
         checkBluetoothPermissions()
-        checkBluetoothPermissionAndStartService()
-        bluetoothConnectionReceiver = BluetoothConnectionReceiver()
-        val filter = IntentFilter()
-        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
-        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
-        registerReceiver(bluetoothConnectionReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-
-        //Receiver creation
-        /*dataTransferReceiver = DataTransferReceiver {
-            Log.d("MainActivity", "Data transfer complete - recreating Activity")
-            runOnUiThread {
-                recreate()
-            }
-        }*/
-
-        //val intentFilter = IntentFilter(Constants.DATA_TRANSFER_COMPLETE)
-        //registerReceiver(dataTransferReceiver, intentFilter)
-
+        Log.d(TAG, "service started")
         val serviceIntent = Intent(this, DataListenerService::class.java)
         startService(serviceIntent)
-
+        //onBluetoothConnected(isSmartwatchConnected(this))
+        //registerReceiver(dataTransferReceiver, IntentFilter(Constants.DATA_TRANSFER_COMPLETE))
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(dataTransferReceiver, IntentFilter(Constants.DATA_TRANSFER_COMPLETE), Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(dataTransferReceiver, IntentFilter(Constants.DATA_TRANSFER_COMPLETE))
+        }
+        val bluetoothFilter = IntentFilter().apply {
+            addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+            addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+        }
+        //registerReceiver(bluetoothConnectionReceiver, bluetoothFilter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(bluetoothConnectionReceiver, bluetoothFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(bluetoothConnectionReceiver, bluetoothFilter)
+        }*/
         setContent {
             FootballStatistics_App_AndroidTheme {
                 val systemUiController = rememberSystemUiController()
@@ -168,22 +185,23 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        //unregisterReceiver(dataTransferReceiver)
-        unregisterReceiver(bluetoothConnectionReceiver)
+        unregisterReceiver(dataTransferReceiver)
+        //unregisterReceiver(bluetoothConnectionReceiver)
     }
 
     override fun onResume() {
         super.onResume()
-        val filter = IntentFilter()
-        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
-        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
-        ContextCompat.registerReceiver(this, bluetoothConnectionReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
-
+//        val bluetoothFilter = IntentFilter().apply {
+//            addAction(android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED)
+//            addAction(android.bluetooth.BluetoothDevice.ACTION_ACL_DISCONNECTED)
+//        }
+//        registerReceiver(bluetoothConnectionReceiver, bluetoothFilter)
     }
 
     override fun onPause() {
         super.onPause()
-        unregisterReceiver(bluetoothConnectionReceiver)
+//        unregisterReceiver(bluetoothConnectionReceiver)
+//        unregisterReceiver(dataTransferReceiver)
     }
 
     private fun checkBluetoothPermissions() {
@@ -225,54 +243,76 @@ class MainActivity : ComponentActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d("MainActivity", "Permissions granted")
+                Log.d(TAG, "Permissions granted")
             } else {
-                Log.w("MainActivity", "Permissions denied")
+                Log.w(TAG, "Permissions denied")
             }
         }
     }
 
     private fun onBluetoothConnected(isConnected: Boolean) {
+        Log.d(TAG, "onBluetoothConnected: $isConnected")
         isBluetoothConnected.value = isConnected
     }
-    fun checkBluetoothPermissionAndStartService() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            // You can use the API that requires the permission.
-            Log.d("MainActivity", "BLUETOOTH_CONNECT already granted")
-            // Optionally, start your service or perform other actions here
-        } else {
-            when {
-                ActivityCompat.shouldShowRequestPermissionRationale(
-                    this,
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ) -> {
-                    // In an educational UI, explain to the user why your app requires this
-                    // permission for a specific feature to behave as expected, and what
-                    // features are disabled if it's not granted. Then, in the UI, include a
-                    // "Next" or "Got it" button that triggers the permission request.
-                    Log.w(
-                        "MainActivity",
-                        "BLUETOOTH_CONNECT permission requires an explanation to the user."
-                    )
-                    requestPermissionLauncher.launch(
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    )
-                }
 
-                else -> {
-                    // You can directly ask for the permission.
-                    Log.w("MainActivity", "BLUETOOTH_CONNECT requesting permission.")
-                    requestPermissionLauncher.launch(
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    )
-                }
+    /*fun getConnectedBluetoothDevices(context: Context): Set<BluetoothDevice> {
+        Log.d(TAG, "getConnectedBluetoothDevices called")
+        val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
+        if (bluetoothAdapter == null) {
+            Log.e("BluetoothUtils", "Bluetooth is not supported on this device")
+            return emptySet()
+        }
+        if (!bluetoothAdapter.isEnabled) {
+            Log.w("BluetoothUtils", "Bluetooth is not enabled")
+            return emptySet()
+        }
+
+        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+            ?: return emptySet<BluetoothDevice>().also {
+                Log.e("BluetoothUtils", "Failed to get BluetoothManager")
+            }
+
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            Log.w("BluetoothUtils", "BLUETOOTH_CONNECT permission not granted")
+            return emptySet()
+        }
+
+        val connectedDevices = mutableSetOf<BluetoothDevice>()
+        val profiles = intArrayOf(
+            BluetoothProfile.GATT,
+            BluetoothProfile.HEADSET,
+            BluetoothProfile.A2DP,
+        )
+
+        for (profile in profiles) {
+            try {
+                connectedDevices.addAll(bluetoothManager.getConnectedDevices(profile))
+            } catch (e: SecurityException) {
+                Log.e("BluetoothUtils", "No devices found", e)
             }
         }
+        return connectedDevices
     }
+
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun isSmartwatchConnected(context: Context): Boolean {
+        val connectedDevices = getConnectedBluetoothDevices(context)
+        for (device in connectedDevices) {
+            if (isProbablyASmartwatch(device)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun isProbablyASmartwatch(device: BluetoothDevice): Boolean {
+        val deviceName = device.name?.lowercase() ?: return false
+
+        return deviceName.contains("watch") ||
+                deviceName.contains("band") ||
+                deviceName.contains("smart")
+    }*/
 }
 
 @Composable

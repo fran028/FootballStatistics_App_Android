@@ -140,7 +140,7 @@ fun DrawLineChart(distanceData: Map<Int, Double>, color: Color) {
         val height = size.height
         // Find the maximum distance and time
         val maxDistance = distanceData.values.maxOrNull() ?: 0.0
-        val maxTime = distanceData.keys.maxOrNull() ?: 0
+        val maxTime = (distanceData.keys.maxOrNull() ?: 0)
 
         // Create a path for the line chart
         val linePath = Path()
@@ -216,7 +216,7 @@ fun DrawLineChart(distanceData: Map<Int, Double>, color: Color) {
             val timeLabelCount = 5
             for (i in 0 until timeLabelCount) {
                 val xPos = (i.toFloat() / (timeLabelCount - 1).toFloat()) * width
-                val timeValue = (maxTime * (i.toFloat() / (timeLabelCount - 1).toFloat())).roundToInt()
+                val timeValue = (maxTime/2 * (i.toFloat() / (timeLabelCount - 1).toFloat())).roundToInt()
                 val textLayoutResult = textMeasurer.measure(
                     text = "$timeValue min",
                     style = TextStyle(color = Color.White, fontSize = 10.sp)

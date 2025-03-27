@@ -54,6 +54,7 @@ import com.example.footballstatistics_app_android.charts.DistanceBarChart
 import com.example.footballstatistics_app_android.charts.HeatmapChart
 //import com.example.footballstatistics_app_android.charts.com.example.footballstatistics_app_android.charts.DistanceLineChart
 import com.example.footballstatistics_app_android.charts.TimeInSideChart
+import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.data.LocationRepository
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModelFactory
@@ -103,6 +104,9 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
     var distanceSelected by remember { mutableStateOf(true) }
     var paceSelected by remember { mutableStateOf(false) }
     var chartName by remember { mutableStateOf("") }
+
+    val chartTitleSize = 22.sp
+    val titleSize = 50.sp
 
     Column(
         modifier = Modifier
@@ -227,9 +231,18 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
 
         Spacer(modifier = Modifier.height(32.dp))
         Text(
+            text = "MATCH CHARTS",
+            fontFamily = LeagueGothic,
+            fontSize = titleSize,
+            color = white,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
             text = "LOCATION HEATMAP",
             fontFamily = RobotoCondensed,
-            fontSize = 26.sp,
+            fontSize = chartTitleSize,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
@@ -242,7 +255,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         Text(
             text = "POSITIONING OVER TIME BY SIDE",
             fontFamily = RobotoCondensed,
-            fontSize = 26.sp,
+            fontSize = chartTitleSize,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
@@ -256,7 +269,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         Text(
             text = "DIRECTION MOVED OVER TIME",
             fontFamily = RobotoCondensed,
-            fontSize = 26.sp,
+            fontSize = chartTitleSize,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
@@ -281,7 +294,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         Text(
             text = "TOTAL DISTANCE OVER TIME",
             fontFamily = RobotoCondensed,
-            fontSize = 26.sp,
+            fontSize = chartTitleSize,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
@@ -294,7 +307,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         Text(
             text = "DISTANCE PER MINUTE",
             fontFamily = RobotoCondensed,
-            fontSize = 26.sp,
+            fontSize = chartTitleSize,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
@@ -302,6 +315,42 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         Column (Modifier.padding(horizontal = 36.dp )){
             DistanceBarChart(match_id, blue)
         }
+
+        if (!currentMatch.isExample) {
+            Spacer(modifier = Modifier.height(32.dp))
+            Text(
+                text = "MATCH SETTINGS",
+                fontFamily = LeagueGothic,
+                fontSize = titleSize,
+                color = white,
+                modifier = Modifier.padding(horizontal = 32.dp)
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Row (
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.Bottom,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 30.dp)
+            ) {
+                ButtonObject(
+                    text = "DELETE MATCH",
+                    onClick = {
+                        coroutineScope.launch(Dispatchers.IO) {
+                            matchViewModel.deleteMatch(currentMatch)
+                            locationViewModel.deleteLocationsFromMatch(match_id.toString())
+                            navController.navigate("home")
+                        }
+                    },
+                    bgcolor = red,
+                    textcolor = black,
+                    width = 550.dp,
+                    height = 60.dp
+                )
+            }
+
+        }
+
         Spacer(modifier = Modifier.height(30.dp))
     }
 }

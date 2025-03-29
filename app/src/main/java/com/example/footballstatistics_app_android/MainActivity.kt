@@ -80,6 +80,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresPermission
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.footballstatistics_app_android.Theme.red
+import com.example.footballstatistics_app_android.pages.AddMatchPage
 import java.util.HashSet
 import kotlin.io.path.name
 
@@ -102,27 +104,8 @@ class MainActivity : ComponentActivity() {
         Manifest.permission.POST_NOTIFICATIONS,
         Manifest.permission.FOREGROUND_SERVICE
     )
-
-    private var isBluetoothConnected = mutableStateOf(false)
     lateinit var container: AppContainer
-    private val dataTransferReceiver = DataTransferReceiver {
-        Log.d("DataTransferReceiver", "Data transfer complete")
-        runOnUiThread { recreate() }
-    }
-    /*private val bluetoothConnectionReceiver = BluetoothConnectionReceiver { isConnected ->
-        isBluetoothConnected.value = isConnected
-    }*/
-    /*private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-            if (isGranted) {
-                // Permission is granted. Continue the action or workflow in your app.
-                Log.d(TAG, "BLUETOOTH_CONNECT permission granted")
-            } else {
-                // Explain to the user that the feature is unavailable because the
-                // feature requires a permission that the user has denied.
-                Log.w(TAG, "BLUETOOTH_CONNECT permission denied")
-            }
-        }*/
+
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @RequiresApi(Build.VERSION_CODES.O)
@@ -137,25 +120,9 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "bluetooth permission checked")
         checkBluetoothPermissions()
         Log.d(TAG, "service started")
-        val serviceIntent = Intent(this, DataListenerService::class.java)
-        startService(serviceIntent)
-        //onBluetoothConnected(isSmartwatchConnected(this))
-        //registerReceiver(dataTransferReceiver, IntentFilter(Constants.DATA_TRANSFER_COMPLETE))
-        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(dataTransferReceiver, IntentFilter(Constants.DATA_TRANSFER_COMPLETE), Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(dataTransferReceiver, IntentFilter(Constants.DATA_TRANSFER_COMPLETE))
-        }
-        val bluetoothFilter = IntentFilter().apply {
-            addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
-            addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
-        }
-        //registerReceiver(bluetoothConnectionReceiver, bluetoothFilter)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(bluetoothConnectionReceiver, bluetoothFilter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(bluetoothConnectionReceiver, bluetoothFilter)
-        }*/
+        //val serviceIntent = Intent(this, DataListenerService::class.java)
+        //startService(serviceIntent)
+
         setContent {
             FootballStatistics_App_AndroidTheme {
                 val systemUiController = rememberSystemUiController()
@@ -171,21 +138,14 @@ class MainActivity : ComponentActivity() {
                         darkIcons = useDarkIcons
                     )
                 }
-                var isBluetoothConnectedState by remember { isBluetoothConnected }
-                MainScreen(
-                    isBluetoothConnected = isBluetoothConnectedState,
-                    onBluetoothConnectedChange = { isConnected ->
-                        isBluetoothConnectedState = isConnected
-                    }
-                )
-
+                MainScreen()
             }
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(dataTransferReceiver)
+        //unregisterReceiver(dataTransferReceiver)
         //unregisterReceiver(bluetoothConnectionReceiver)
     }
 
@@ -249,70 +209,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    private fun onBluetoothConnected(isConnected: Boolean) {
-        Log.d(TAG, "onBluetoothConnected: $isConnected")
-        isBluetoothConnected.value = isConnected
-    }
-
-    /*fun getConnectedBluetoothDevices(context: Context): Set<BluetoothDevice> {
-        Log.d(TAG, "getConnectedBluetoothDevices called")
-        val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-        if (bluetoothAdapter == null) {
-            Log.e("BluetoothUtils", "Bluetooth is not supported on this device")
-            return emptySet()
-        }
-        if (!bluetoothAdapter.isEnabled) {
-            Log.w("BluetoothUtils", "Bluetooth is not enabled")
-            return emptySet()
-        }
-
-        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
-            ?: return emptySet<BluetoothDevice>().also {
-                Log.e("BluetoothUtils", "Failed to get BluetoothManager")
-            }
-
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            Log.w("BluetoothUtils", "BLUETOOTH_CONNECT permission not granted")
-            return emptySet()
-        }
-
-        val connectedDevices = mutableSetOf<BluetoothDevice>()
-        val profiles = intArrayOf(
-            BluetoothProfile.GATT,
-            BluetoothProfile.HEADSET,
-            BluetoothProfile.A2DP,
-        )
-
-        for (profile in profiles) {
-            try {
-                connectedDevices.addAll(bluetoothManager.getConnectedDevices(profile))
-            } catch (e: SecurityException) {
-                Log.e("BluetoothUtils", "No devices found", e)
-            }
-        }
-        return connectedDevices
-    }
-
-    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-    fun isSmartwatchConnected(context: Context): Boolean {
-        val connectedDevices = getConnectedBluetoothDevices(context)
-        for (device in connectedDevices) {
-            if (isProbablyASmartwatch(device)) {
-                return true
-            }
-        }
-        return false
-    }
-
-    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-    fun isProbablyASmartwatch(device: BluetoothDevice): Boolean {
-        val deviceName = device.name?.lowercase() ?: return false
-
-        return deviceName.contains("watch") ||
-                deviceName.contains("band") ||
-                deviceName.contains("smart")
-    }*/
 }
 
 @Composable
@@ -345,7 +241,7 @@ fun BluetoothStatusIcon(isConnected: Boolean, modifier: Modifier) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MainScreen(isBluetoothConnected: Boolean, onBluetoothConnectedChange: (Boolean) -> Unit) {
+fun MainScreen() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -359,6 +255,14 @@ fun MainScreen(isBluetoothConnected: Boolean, onBluetoothConnectedChange: (Boole
             route = Screen.Home.route
         ),
         BottomNavigationItem(
+            title = "Add Match",
+            selectedIcon = R.drawable.smartwatch,
+            unselectedIcon = R.drawable.smartwatch,
+            indicatorColor = green,
+            hasNews = false,
+            route = Screen.AddMatch.route
+        ),
+        BottomNavigationItem(
             title = "Calendar",
             selectedIcon = R.drawable.calendar,
             unselectedIcon = R.drawable.calendar,
@@ -370,7 +274,7 @@ fun MainScreen(isBluetoothConnected: Boolean, onBluetoothConnectedChange: (Boole
             title = "Profile",
             selectedIcon = R.drawable.shirt,
             unselectedIcon = R.drawable.shirt,
-            indicatorColor = green,
+            indicatorColor = red,
             hasNews = false,
             route = Screen.Profile.route
         )
@@ -494,15 +398,13 @@ fun MainScreen(isBluetoothConnected: Boolean, onBluetoothConnectedChange: (Boole
                         modifier = Modifier
                     )
                 }
+                composable(Screen.AddMatch.route) {
+                    AddMatchPage(
+                        navController = navController,
+                        modifier = Modifier
+                    )
+                }
             }
-        }
-        if (currentDestination?.route != Screen.Login.route && currentDestination?.route != Screen.Register.route && isBluetoothConnected) {
-            BluetoothStatusIcon(
-                isConnected = isBluetoothConnected, modifier = Modifier
-                    .align(Alignment.BottomCenter) // Position it TopEnd, TopStart, BottomEnd, BottomStart, etc.
-                    .offset(x = 0.dp, y = -100.dp) // Fine-tune the offset
-                    .padding(16.dp)
-            )
         }
     }
 }

@@ -133,6 +133,10 @@ class MatchViewModel(private val repository: MatchRepository) : ViewModel() {
         }
     }
 
+    suspend fun getLastMatchId(userId: String): Int {
+        return repository.getLastMatchId(userId)
+    }
+
     suspend fun getExampleMatch(userId: String) = withContext(Dispatchers.IO) {
         try {
             val match = repository.getExampleMatch(userId)

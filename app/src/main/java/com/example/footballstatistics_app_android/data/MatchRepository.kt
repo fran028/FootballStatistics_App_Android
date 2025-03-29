@@ -25,6 +25,10 @@ class MatchRepository (private val matchDao: MatchDao) {
         return matchDao.getLastMatches(amount, userId)
     }
 
+    suspend fun getLastMatchId(userId: String): Int {
+        return matchDao.getLastMatchId(userId)
+    }
+
     fun getMatchesBetweenDates(startDate: String, endDate: String, userId: String): List<Match> {
         return matchDao.getMatchesBetweenDates(startDate, endDate, userId)
     }

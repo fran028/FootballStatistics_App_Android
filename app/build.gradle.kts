@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.androidx.espresso.core)
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.androidx.tools.core)
+    implementation(libs.androidx.runtime.livedata)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

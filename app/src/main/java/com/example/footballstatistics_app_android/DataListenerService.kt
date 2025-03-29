@@ -5,17 +5,23 @@ import android.app.NotificationManager
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import androidx.compose.ui.graphics.vector.path
-import androidx.compose.ui.input.key.type
+import androidx.activity.result.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.NodeClient
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
 import com.example.footballstatistics_app_android.data.Location
 import com.example.footballstatistics_app_android.data.LocationRepository
 import com.example.footballstatistics_app_android.data.Match
 import com.example.footballstatistics_app_android.data.MatchRepository
+import com.example.footballstatistics_app_android.data.UserRepository
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
+import com.example.footballstatistics_app_android.viewmodel.SharedDataViewModel
+import com.example.footballstatistics_app_android.viewmodel.UserViewModel
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -27,6 +33,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.collectLatest
 
 object Constants {
     const val DATA_TRANSFER_COMPLETE = "com.example.footballstatistics_app_android.DATA_TRANSFER_COMPLETE"
@@ -36,19 +44,30 @@ object Constants {
 
 private const val TAG = "DataListenerService"
 
-class DataListenerService : WearableListenerService(), DataClient.OnDataChangedListener {
+class DataListenerService : WearableListenerService(), DataClient.OnDataChangedListener,
+    ViewModelStoreOwner {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var locationViewModel: LocationViewModel
     private lateinit var matchViewModel: MatchViewModel
+    private lateinit var userViewModel: UserViewModel
     private lateinit var locationRepository: LocationRepository
     private lateinit var matchRepository: MatchRepository
+    private lateinit var userRepository: UserRepository
     private lateinit var container: AppContainer
     private lateinit var dataClient: DataClient
     private var currentMatchId: Int = -1 // Initialize with a default value
+    private var loginUserId = "0"
+    private var lastMatchId = "0"
+    private lateinit var sharedViewModel: SharedDataViewModel
+
+    override val viewModelStore: ViewModelStore by lazy { ViewModelStore() }
+
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     init {
         Log.d(TAG, "Service Constructor called")
     }
+
 
     @Override
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -57,9 +76,42 @@ class DataListenerService : WearableListenerService(), DataClient.OnDataChangedL
         container = (applicationContext as FootballStatisticsApplication).container
         locationRepository = container.locationRepository
         matchRepository = container.matchRepository
+        userRepository = container.userRepository
         locationViewModel = LocationViewModel(locationRepository)
         matchViewModel = MatchViewModel(matchRepository)
+        userViewModel = UserViewModel(userRepository)
+
+        userViewModel.getLoginUser()
+        serviceScope.launch {
+            userViewModel.loginUser.collectLatest { user ->
+                val userId = user?.id
+                if (userId != null) {
+                    loginUserId = userId.toString()
+                    val usermatchId =
+                        withContext(Dispatchers.Main) { // Switch to main thread for database operation
+                            matchViewModel.getLastMatchId(userId = loginUserId)
+                        }
+                    if (usermatchId != null) {
+                        lastMatchId = usermatchId.toString()
+                        currentMatchId = lastMatchId.toInt() + 1
+                        Log.d(TAG, "Last Match ID: ${lastMatchId}")
+                        // Do something with the last match ID (e.g., store it, use it for filtering data)
+                    } else {
+                        Log.d(TAG, "No previous matches found for user $userId")
+                        // Handle the case where there are no previous matches
+                    }
+                } else {
+                    Log.d(TAG, "No user logged in")
+                    // Handle the case where no user is logged in (e.g., use a default ID)
+                }
+            }
+        }
+
         dataClient = Wearable.getDataClient(this)
+        sharedViewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application))
+            .get(SharedDataViewModel::class.java)
+        Log.d("DataListenerService", "ViewModel hash: ${sharedViewModel.hashCode()}, Updating serviceState: \"Service Started\"")
+        sharedViewModel.serviceState.postValue("Service Started")
 
         val nodeClient: NodeClient = Wearable.getNodeClient(this) // Initialize NodeClient
         isSmartwatchNodeConnected(nodeClient) { isConnected, smartwatchNode ->
@@ -78,12 +130,16 @@ class DataListenerService : WearableListenerService(), DataClient.OnDataChangedL
         startForeground(Constants.DATALISTENER_NOTIFICATION_ID, createNotification())
         Log.d(TAG, "addListener")
         dataClient.addListener(this)
+        Log.d("DataListenerService", "ViewModel hash: ${sharedViewModel.hashCode()}, Updating serviceState: \"Listening for new match\"")
+        sharedViewModel.serviceState.postValue("Listening for new match")
+        sharedViewModel.finished.postValue(false)
         Log.d(TAG, "onCreate Ended")
         return START_STICKY
     }
 
     override fun onDataChanged(dataEvents: DataEventBuffer) {
         Log.d(TAG, "onDataChanged: $dataEvents")
+        sharedViewModel.serviceState.postValue("Match found")
         try{
             for (event in dataEvents) {
                 if (event.type == DataEvent.TYPE_CHANGED) {
@@ -115,16 +171,15 @@ class DataListenerService : WearableListenerService(), DataClient.OnDataChangedL
         }
     }
 
+
     fun isSmartwatchNodeConnected(nodeClient: NodeClient, onConnectionResult: (Boolean, Node?) -> Unit) {
         nodeClient.connectedNodes.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val nodes: List<Node> = task.result
-                // Assuming only one Wear OS device will be connected at a time
                 val smartwatchNode: Node? = nodes.firstOrNull { it.isNearby }
                 Log.d(TAG, "Smartwatch Node: $smartwatchNode")
                 onConnectionResult(smartwatchNode != null, smartwatchNode)
             } else {
-                // Handle error (e.g., log it)
                 Log.e(TAG, "Error getting connected nodes: ${task.exception}")
                 onConnectionResult(false, null)
             }
@@ -135,12 +190,33 @@ class DataListenerService : WearableListenerService(), DataClient.OnDataChangedL
         coroutineScope.launch {
             try {
                 val gson = Gson()
-                val match: Match = gson.fromJson(matchJson, Match::class.java)
+                val match = gson.fromJson(matchJson, Match::class.java)
+                val matchFormated = Match(
+                    id = currentMatchId,
+                    user_id = match.user_id,
+                    date = match.date,
+                    ini_time = match.ini_time,
+                    end_time = match.end_time,
+                    total_time = match.total_time,
+                    away_corner_location = match.away_corner_location,
+                    home_corner_location = match.home_corner_location,
+                    kickoff_location = match.kickoff_location,
+                    isExample = match.isExample
+                )
+
+                val userId = loginUserId
+                matchFormated.user_id = userId.toString()
+                // Insert the match and wait for completion:
+                withContext(Dispatchers.Main) { // Switch to Main thread for database operation
+                    matchViewModel.insertMatch(match)
+                }
+                // Now that the insert is complete, get the new match ID:
                 matchViewModel.insertMatch(match)
-                currentMatchId = match.id // Assuming match.id is an Int or Long
+                sharedViewModel.newMatchId.postValue(currentMatchId)
                 Log.d(TAG, "Match data saved to database with ID: $currentMatchId")
                 // Send the broadcast
                 sendDataTransferCompleteBroadcast()
+                sharedViewModel.matchData.postValue("Match data received")
             } catch (e: Exception) {
                 Log.e(TAG, "Error processing match data", e)
             }
@@ -172,6 +248,7 @@ class DataListenerService : WearableListenerService(), DataClient.OnDataChangedL
                 }
                 locations.forEach { locationViewModel.insertLocation(it) }
                 Log.d(TAG, "Location Data saved to database for match ID: $matchId")
+                sharedViewModel.locationData.postValue("Location data received")
                 // Send the broadcast
                 sendDataTransferCompleteBroadcast()
             } catch (e: Exception) {
@@ -186,6 +263,7 @@ class DataListenerService : WearableListenerService(), DataClient.OnDataChangedL
                 addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
             }
         }
+        sharedViewModel.finished.postValue(true)
         sendBroadcast(broadcastIntent, if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) android.Manifest.permission.POST_NOTIFICATIONS else null)
         Log.d(TAG, "Broadcast sent")
     }

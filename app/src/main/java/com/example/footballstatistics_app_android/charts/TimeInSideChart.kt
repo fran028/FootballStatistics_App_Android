@@ -144,10 +144,10 @@ fun SideChart(locationDataList: List<Location?>, match: Match, colorLeft: Color,
         if (location != null) {
             val latitude = location.longitude.toDouble().absoluteValue
             if (latitude < halfPitch) {
-                Log.d("TimeChart", "Left Latitude: $latitude / Half pitch: $halfPitch")
+               // Log.d("TimeChart", "Left Latitude: $latitude / Half pitch: $halfPitch")
                 leftCount++
             } else {
-                Log.d("TimeChart", "Right Latitude: $latitude / Half pitch: $halfPitch")
+                //Log.d("TimeChart", "Right Latitude: $latitude / Half pitch: $halfPitch")
                 rightCount++
             }
         }

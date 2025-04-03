@@ -120,8 +120,6 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "bluetooth permission checked")
         checkBluetoothPermissions()
         Log.d(TAG, "service started")
-        //val serviceIntent = Intent(this, DataListenerService::class.java)
-        //startService(serviceIntent)
 
         setContent {
             FootballStatistics_App_AndroidTheme {
@@ -141,27 +139,6 @@ class MainActivity : ComponentActivity() {
                 MainScreen()
             }
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        //unregisterReceiver(dataTransferReceiver)
-        //unregisterReceiver(bluetoothConnectionReceiver)
-    }
-
-    override fun onResume() {
-        super.onResume()
-//        val bluetoothFilter = IntentFilter().apply {
-//            addAction(android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED)
-//            addAction(android.bluetooth.BluetoothDevice.ACTION_ACL_DISCONNECTED)
-//        }
-//        registerReceiver(bluetoothConnectionReceiver, bluetoothFilter)
-    }
-
-    override fun onPause() {
-        super.onPause()
-//        unregisterReceiver(bluetoothConnectionReceiver)
-//        unregisterReceiver(dataTransferReceiver)
     }
 
     private fun checkBluetoothPermissions() {
@@ -211,33 +188,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun BluetoothStatusIcon(isConnected: Boolean, modifier: Modifier) {
-    var color = white
-    var border = gray
-    if (!isConnected) {
-        color = blue
-        border = white
-    }
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .border(1.dp, border, CircleShape)
-                .clip(CircleShape)
-                .background(color)
-                .padding(2.dp)
-        ) {
-            Icon(
-                imageVector = if (isConnected) Icons.Filled.Bluetooth else Icons.Filled.BluetoothDisabled,
-                contentDescription = "Bluetooth Status",
-                modifier = Modifier.size(24.dp)
-            )
-        }
-    }
-}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -245,6 +195,7 @@ fun MainScreen() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
     val items = listOf(
         BottomNavigationItem(
             title = "Home",

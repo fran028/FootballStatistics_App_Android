@@ -201,7 +201,7 @@ fun BarChart(locationDataList: List<Location?>, match: Match, colorLeft: Color, 
                 //Left rectangle
                 drawRect(
                     color = colorLeft,
-                    topLeft = Offset(leftRectLeftPoint + leftRectLeftPoint/2 , 0f),
+                    topLeft = Offset(leftRectLeftPoint, 0f),
                     size = androidx.compose.ui.geometry.Size(
                         leftSize*size.width/2,
                         size.height
@@ -213,12 +213,12 @@ fun BarChart(locationDataList: List<Location?>, match: Match, colorLeft: Color, 
                     color = colorRight,
                     topLeft = Offset(size.width/2, 0f),
                     size = androidx.compose.ui.geometry.Size(
-                        rightSize*size.width/4,
+                        rightSize*size.width/2,
                         size.height)
                 )
 
                 // Left Arrow parameters
-                val leftarrowColor = colorLeft
+                /*val leftarrowColor = colorLeft
                 val leftarrowHeadLength =  size.width/2 * leftSize / 2
                 val leftarrowHeadWidth = size.height
 
@@ -249,7 +249,7 @@ fun BarChart(locationDataList: List<Location?>, match: Match, colorLeft: Color, 
                 drawPath(
                     path = rightArrowPath,
                     color = rightarrowColor,
-                )
+                )*/
 
                 // Add labels to the rectangles
                 val textLeft = textMeasurer.measure(

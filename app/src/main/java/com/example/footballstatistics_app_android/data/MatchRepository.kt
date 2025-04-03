@@ -1,6 +1,5 @@
 package com.example.footballstatistics_app_android.data
 
-import android.util.Log
 import kotlinx.coroutines.flow.Flow
 
 class MatchRepository (private val matchDao: MatchDao) {

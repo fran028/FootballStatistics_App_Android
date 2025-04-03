@@ -5,8 +5,8 @@ import android.app.NotificationManager
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import androidx.activity.result.launch
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.NodeClient
 import androidx.core.app.NotificationCompat
@@ -68,18 +68,20 @@ class DataListenerService : WearableListenerService(), DataClient.OnDataChangedL
         Log.d(TAG, "Service Constructor called")
     }
 
-
-    @Override
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "onStartCommand initiated")
+    override fun onCreate() {
         super.onCreate()
+        Log.d(TAG, "onCreate called")
         container = (applicationContext as FootballStatisticsApplication).container
+//        sharedViewModel = ViewModelProvider(this).get(SharedDataViewModel::class.java)
+        sharedViewModel = SharedDataViewModel.getInstance()
         locationRepository = container.locationRepository
         matchRepository = container.matchRepository
         userRepository = container.userRepository
         locationViewModel = LocationViewModel(locationRepository)
         matchViewModel = MatchViewModel(matchRepository)
         userViewModel = UserViewModel(userRepository)
+        dataClient = Wearable.getDataClient(this)
+        Log.d(TAG, "View models created")
 
         userViewModel.getLoginUser()
         serviceScope.launch {
@@ -106,12 +108,20 @@ class DataListenerService : WearableListenerService(), DataClient.OnDataChangedL
                 }
             }
         }
+    }
 
-        dataClient = Wearable.getDataClient(this)
-        sharedViewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application))
-            .get(SharedDataViewModel::class.java)
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModelStore.clear()
+    }
+
+    @Override
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d(TAG, "onStartCommand initiated")
+
         Log.d("DataListenerService", "ViewModel hash: ${sharedViewModel.hashCode()}, Updating serviceState: \"Service Started\"")
         sharedViewModel.serviceState.postValue("Service Started")
+        sharedViewModel.serviceStage.postValue(1)
 
         val nodeClient: NodeClient = Wearable.getNodeClient(this) // Initialize NodeClient
         isSmartwatchNodeConnected(nodeClient) { isConnected, smartwatchNode ->
@@ -132,12 +142,17 @@ class DataListenerService : WearableListenerService(), DataClient.OnDataChangedL
         dataClient.addListener(this)
         Log.d("DataListenerService", "ViewModel hash: ${sharedViewModel.hashCode()}, Updating serviceState: \"Listening for new match\"")
         sharedViewModel.serviceState.postValue("Listening for new match")
+        sharedViewModel.serviceStage.postValue(2)
         sharedViewModel.finished.postValue(false)
         Log.d(TAG, "onCreate Ended")
         return START_STICKY
     }
 
     override fun onDataChanged(dataEvents: DataEventBuffer) {
+//        if(SharedDataViewModel.getServiceStage()!! < 3){
+//            sharedViewModel.serviceStage.postValue(3)
+//        }
+        Log.d(TAG, "onDataChanged called!")
         Log.d(TAG, "onDataChanged: $dataEvents")
         sharedViewModel.serviceState.postValue("Match found")
         try{
@@ -162,6 +177,19 @@ class DataListenerService : WearableListenerService(), DataClient.OnDataChangedL
                             if (matchJson != null) {
                                 processMatchData(matchJson)
                             }
+                        }
+                        "wear:/transfer_data" -> {
+                            val dataMapItem = DataMapItem.fromDataItem(dataItem)
+                            val matchJsonStart = dataMapItem.dataMap.getString("start")
+                            val matchJsonEnd = dataMapItem.dataMap.getString("end")
+                            if (matchJsonStart != null) {
+                                sharedViewModel.serviceStage.postValue(3)
+                            }
+                            if (matchJsonStart != null) {
+                                sharedViewModel.serviceStage.postValue(4)
+                            }
+
+
                         }
                     }
                 }
@@ -264,6 +292,7 @@ class DataListenerService : WearableListenerService(), DataClient.OnDataChangedL
             }
         }
         sharedViewModel.finished.postValue(true)
+        sharedViewModel.serviceStage.postValue(4)
         sendBroadcast(broadcastIntent, if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) android.Manifest.permission.POST_NOTIFICATIONS else null)
         Log.d(TAG, "Broadcast sent")
     }

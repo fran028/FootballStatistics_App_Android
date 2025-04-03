@@ -28,7 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -61,12 +60,12 @@ fun AddMatchPage(modifier: Modifier = Modifier, navController: NavController) {
 
     val context = LocalContext.current
     val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-    val sharedViewModel: SharedDataViewModel = viewModel()
+    val sharedViewModel: SharedDataViewModel = SharedDataViewModel.getInstance()
 
     val serviceState by sharedViewModel.serviceState.observeAsState()
-    val matchData by sharedViewModel.matchData.observeAsState()
-    val locationData by sharedViewModel.locationData.observeAsState()
+    val serviceStage by sharedViewModel.serviceStage.observeAsState()
     val newMatchId by sharedViewModel.newMatchId.observeAsState()
+    val finished by sharedViewModel.finished.observeAsState()
 
     LaunchedEffect(serviceState) {
         Log.d("AddMatchPage", "serviceState changed: $serviceState")
@@ -153,7 +152,7 @@ fun AddMatchPage(modifier: Modifier = Modifier, navController: NavController) {
             )
             Spacer(modifier = Modifier.height(24.dp))
             ButtonIconObject(
-                text = "Bluetooth: ${if (isBluetoothEnabled) "Enabled" else "Disabled"}",
+                text = "Bluetooth: ${if (isBluetoothEnabled) "ON" else "OFF"}",
                 bgcolor = if (isBluetoothEnabled) blue else white,
                 height = 50.dp,
                 textcolor = if (isBluetoothEnabled) black else gray,
@@ -163,7 +162,7 @@ fun AddMatchPage(modifier: Modifier = Modifier, navController: NavController) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             ButtonIconObject(
-                text = "Connected to Watch: ${if (isConnectedToWatch) "Yes" else "No"}",
+                text = "Watch: ${if (isConnectedToWatch) "CONNECTED" else "DISCONNECTED"}",
                 bgcolor = if (isBluetoothEnabled) green else white,
                 height = 50.dp,
                 textcolor = if (isBluetoothEnabled) black else gray,
@@ -172,7 +171,7 @@ fun AddMatchPage(modifier: Modifier = Modifier, navController: NavController) {
                 onClick = { }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
             Text(
                 text = "NEW MATCH",
                 fontFamily = LeagueGothic,
@@ -180,15 +179,15 @@ fun AddMatchPage(modifier: Modifier = Modifier, navController: NavController) {
                 color = white
 
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             if (isConnectedToWatch && !isServiceRunning) {
                 ButtonIconObject(
-                    text = "Add new match",
-                    bgcolor = if (isBluetoothEnabled) green else white,
+                    text = "Transfer match",
+                    bgcolor = if (isBluetoothEnabled) yellow else white,
                     height = 50.dp,
                     textcolor = if (isBluetoothEnabled) black else gray,
                     value = "",
-                    icon = R.drawable.smartwatch,
+                    icon = R.drawable.strategy,
                     onClick = {
                         if (isBluetoothEnabled) {
                             Log.d("AddMatchPage", "Starting service")
@@ -198,43 +197,55 @@ fun AddMatchPage(modifier: Modifier = Modifier, navController: NavController) {
                     }
                 )
             } else {
+                val currentStageFontColor = blue
+                val previousStagesFontColor = green
+                val nextStageFontColor = gray
+
                 Text(
-                    text = "Service State: $serviceState",
+                    text = "Started",
                     fontFamily = RobotoCondensed,
                     fontSize = 24.sp,
-                    color = white
+                    color = if (serviceStage!! == 1) currentStageFontColor else if ( serviceStage!! >= 1 ) previousStagesFontColor else nextStageFontColor
+
+                )
+                Text(
+                    text = "Searching for match",
+                    fontFamily = RobotoCondensed,
+                    fontSize = 24.sp,
+                    color = if (serviceStage!! == 2) currentStageFontColor else if ( serviceStage!! >= 2 ) previousStagesFontColor else nextStageFontColor
+
+                )
+                Text(
+                    text = "Recieving data",
+                    fontFamily = RobotoCondensed,
+                    fontSize = 24.sp,
+                    color = if (serviceStage!! == 3) currentStageFontColor else if ( serviceStage!! >= 3 ) previousStagesFontColor else nextStageFontColor
+
+                )
+                Text(
+                    text = "Data received",
+                    fontFamily = RobotoCondensed,
+                    fontSize = 24.sp,
+                    color = if (serviceStage!! == 3) currentStageFontColor else if ( serviceStage!! >= 3 ) previousStagesFontColor else nextStageFontColor
 
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Match Data: $matchData",
-                    fontFamily = RobotoCondensed,
-                    fontSize = 24.sp,
-                    color = white
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Location Data: $locationData",
-                    fontFamily = RobotoCondensed,
-                    fontSize = 24.sp,
-                    color = white
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                ButtonObject(
-                    text = "Cancel",
-                    bgcolor = red,
-                    textcolor = black,
-                    width = 550.dp,
-                    height = 60.dp,
-                    onClick = {
-                        if (isServiceRunning) {
-                            Log.d("AddMatchPage", "Stopping service")
-                            stopDataListenerService(context)
-                            isServiceRunning = false
+                if(!finished!!){
+                    ButtonObject(
+                        text = "Cancel",
+                        bgcolor = if (isServiceRunning && serviceStage!! != 3) red else gray,
+                        textcolor = black,
+                        width = 550.dp,
+                        height = 60.dp,
+                        onClick = {
+                            if (isServiceRunning && serviceStage!! != 3) {
+                                Log.d("AddMatchPage", "Stopping service")
+                                stopDataListenerService(context)
+                                isServiceRunning = false
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
 
             if (newMatchId != -1) {
@@ -280,9 +291,8 @@ private fun checkConnectedDevice(context: Context, bluetoothAdapter: BluetoothAd
         return
     }
 
-    // Iterate through bonded devices and check for your smartwatch (you'll need a way to identify it)
+    // Iterate through bonded devices and check for your smartwatch
     val isWatchConnected = bondedDevices?.any {
-        // Replace with your logic to identify your smartwatch. For example:
         it.name?.contains("Watch") == true || it.address == "YOUR_WATCH_BLUETOOTH_ADDRESS"
     } ?: false
 

@@ -96,7 +96,6 @@ dependencies {
 
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
-//    implementation("com.github.madrapps:plot:1.0.3")
     implementation("com.github.madrapps:plot:0.1.1")
 
     implementation("com.google.android.gms:play-services-wearable:19.0.0")

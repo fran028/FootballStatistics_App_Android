@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -36,23 +35,18 @@ import com.example.footballstatistics_app_android.Screen
 import com.example.footballstatistics_app_android.Theme.LeagueGothic
 import com.example.footballstatistics_app_android.Theme.RobotoCondensed
 import com.example.footballstatistics_app_android.Theme.black
-import com.example.footballstatistics_app_android.Theme.green
 import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.charts.HeatmapChart
 import com.example.footballstatistics_app_android.components.ButtonIconObject
 import com.example.footballstatistics_app_android.components.ViewTitle
 import com.example.footballstatistics_app_android.data.AppDatabase
-import com.example.footballstatistics_app_android.data.LocationRepository
 import com.example.footballstatistics_app_android.data.MatchRepository
 import com.example.footballstatistics_app_android.data.UserRepository
-import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
-import com.example.footballstatistics_app_android.viewmodel.LocationViewModelFactory
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
 import com.example.footballstatistics_app_android.viewmodel.UserViewModel
 import com.example.footballstatistics_app_android.viewmodel.UserViewModelFactory
-import kotlin.random.Random
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -66,13 +60,8 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
     val userRepository = UserRepository(database.userDao())
     val userViewModelFactory = UserViewModelFactory(userRepository)
     val userViewModel: UserViewModel = viewModel(factory = userViewModelFactory)
-    val locationRepository = LocationRepository(database.locationDao())
-    val locationViewModelFactory = LocationViewModelFactory(locationRepository)
-    val locationViewModel: LocationViewModel = viewModel(factory = locationViewModelFactory)
-    val coroutineScope = rememberCoroutineScope()
 
     val lastMatches by matchViewModel.lastMatch.collectAsState(initial = null)
-    val loginUser by userViewModel.loginUser.collectAsState(initial = null)
     userViewModel.getLoginUser()
 
     var lastMatch = matchViewModel.emptyMatch()
@@ -229,75 +218,3 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController) {
         }
     }
 }
-
-fun GetRandomNextPosition(latitude: Double, longitude: Double, maxLatitude: Double, maxLongitude: Double, minLatitude: Double, minLongitude: Double):Pair<Double, Double> {
-    var newLatitude = Random.nextDouble(latitude - 0.000002, latitude + 0.000002)
-    var newLongitude = Random.nextDouble(longitude - 0.000002, longitude + 0.000002)
-    var randomLatitude = newLatitude
-    var randomLongitude = newLongitude
-    while (
-        randomLatitude < minLatitude ||
-        randomLatitude > maxLatitude ||
-        randomLongitude < minLongitude ||
-        randomLongitude > maxLongitude
-    ) {
-        randomLatitude = Random.nextDouble(newLatitude - 0.000002, newLatitude + 0.000002)
-        randomLongitude = Random.nextDouble(newLongitude - 0.000002, newLongitude + 0.000002)
-    }
-    newLatitude = randomLatitude
-    newLongitude = randomLongitude
-    return Pair(newLatitude, newLongitude)
-}
-
-//fun GetNextPosition(
-//    currentLatitude: Double,  currentLongitude: Double,
-//    maxLatitude: Double, maxLongitude: Double,
-//    minLatitude: Double, minLongitude: Double,
-//    prevLatitude: Double, prevLongitude: Double
-//): Pair<Double, Double> {
-//
-//    val maxStepDistance = 0.0001 // Maximum distance (latitude or longitude) a player can move in one step
-//    val changeDirectionProbability = 0.15 // Probability of changing direction
-//    val restProbability = 0.15// Probability of stop
-//    val speedLimit = 0.00005
-//
-//    var newLatitude = currentLatitude
-//    var newLongitude = currentLongitude
-//
-//    // Rest
-//    if (Random.nextDouble() < restProbability) {
-//        return Pair(newLatitude, newLongitude)
-//    }
-//
-//    var directionLatitude = if (Random.nextDouble() < changeDirectionProbability) {
-//        Random.nextDouble(-1.0, 1.0)
-//    } else {
-//        prevLatitude - currentLatitude
-//    }
-//    var directionLongitude = if (Random.nextDouble() < changeDirectionProbability) {
-//        Random.nextDouble(-1.0, 1.0)
-//    } else {
-//        prevLongitude - currentLongitude
-//    }
-//
-//    // Limit change of direction
-//    directionLatitude = max(min(directionLatitude, maxStepDistance), -maxStepDistance)
-//    directionLongitude = max(min(directionLongitude, maxStepDistance), -maxStepDistance)
-//    newLatitude += directionLatitude
-//    newLongitude += directionLongitude
-//
-//    // Limit Speed
-//    val movement = Pair(abs(newLatitude - currentLatitude), abs(newLongitude - currentLongitude))
-//    if (movement.first > speedLimit) {
-//        newLatitude = if (newLatitude > currentLatitude) currentLatitude + speedLimit else currentLatitude - speedLimit
-//    }
-//    if (movement.second > speedLimit) {
-//        newLongitude = if (newLongitude > currentLongitude) currentLongitude + speedLimit else currentLongitude - speedLimit
-//    }
-//
-//    // Ensure inside field
-//    newLatitude = max(minLatitude, min(newLatitude, maxLatitude))
-//    newLongitude = max(minLongitude, min(newLongitude, maxLongitude))
-//
-//    return Pair(newLatitude, newLongitude)
-//}

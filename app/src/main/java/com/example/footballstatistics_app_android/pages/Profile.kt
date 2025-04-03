@@ -2,7 +2,6 @@ package com.example.footballstatistics_app_android.pages
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,7 +42,6 @@ import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
 import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.components.ColorBar
-import com.example.footballstatistics_app_android.components.RecordBox
 import com.example.footballstatistics_app_android.components.ViewTitle
 import com.example.footballstatistics_app_android.data.AppDatabase
 import com.example.footballstatistics_app_android.data.LocationRepository
@@ -66,14 +64,6 @@ import java.time.format.DateTimeParseException
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
-    /*if (user.isLoggedIn == false) {
-        navController.navigate(Screen.Login.route) {
-            popUpTo(navController.graph.startDestinationId) { inclusive = true }
-            launchSingleTop = true
-        }
-    }*/
-
-
 
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -138,7 +128,6 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
     val age = calculateAge(user.date)
     val height = user.height
     val weight = user.weight
-    val stayLogin = user.isLoggedIn
 
 
 
@@ -150,7 +139,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        ViewTitle(title = "PROFILE", image = R.drawable.profile_img)
+        ViewTitle(title = "PROFILE", image = R.drawable.profile_img, navController = navController)
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = name,
@@ -224,58 +213,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
                 height = 50.dp
             )
         }
-        /*Spacer(modifier = Modifier.height(24.dp))
-        Row(
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp),
-            verticalAlignment = Alignment.Bottom
-        ) {
-            Text(
-                text = "PERSONAL RECORDS",
-                fontFamily = LeagueGothic,
-                fontSize = 32.sp,
-                color = white,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 0.dp)
-            )
-            Text(
-                text = "(In one match)",
-                fontFamily = RobotoCondensed,
-                fontSize = 12.sp,
-                color = green,
-                modifier = Modifier.padding(horizontal = 0.dp)
-            )
-        }
 
-        Spacer(modifier = Modifier.height(12.dp))
-        Column {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 32.dp)
-            ) {
-                RecordBox(
-                    text = "TOP\n SPEED ",
-                    value = "26 km/h",
-                    bgcolor = blue,
-                    textcolor = white,
-                    height = 100.dp,
-                    width = 100.dp
-                )
-                RecordBox(
-                    text = "TOP\n DISTANCE ",
-                    value = "7,3 km",
-                    bgcolor = yellow,
-                    textcolor = white,
-                    height = 100.dp,
-                    width = 100.dp
-                )
-            }
-        }*/
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "SETTINGS",
@@ -292,7 +230,7 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
                 text = "Logout",
                 bgcolor = red,
                 textcolor = black,
-                width = 500.dp,
+                width = 550.dp,
                 height = 60.dp,
                 onClick = {
                     coroutineScope.launch {
@@ -322,24 +260,16 @@ fun ProfilePage(modifier: Modifier = Modifier, navController: NavController) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun calculateAge(dateOfBirthString: String): Int {
-    // 1. Define the date format
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-    // 2. Parse the date of birth string to LocalDate
     val dateOfBirth: LocalDate = try {
         LocalDate.parse(dateOfBirthString, formatter)
     } catch (e: DateTimeParseException) {
-        // Handle parsing error (e.g., invalid date format)
-        return 0 // Or throw an exception, or return a default value
+        return 0
     }
 
-    // 3. Get the current date
     val currentDate = LocalDate.now()
-
-    // 4. Calculate the difference between the two dates using Period
     val period = Period.between(dateOfBirth, currentDate)
-
-    // 5. Get the age in years
     return period.years
 }
 

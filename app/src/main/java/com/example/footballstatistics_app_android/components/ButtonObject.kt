@@ -29,7 +29,7 @@ fun ButtonObject(
         onClick = onClick,
         modifier = Modifier
             .size(width = width, height = height)  // Custom size
-            .padding(8.dp),  // Add border
+            .padding(8.dp),
         shape = RoundedCornerShape(8.dp),  // Rounded corners
         colors = ButtonDefaults.buttonColors(  // Custom colors
             containerColor = bgcolor,

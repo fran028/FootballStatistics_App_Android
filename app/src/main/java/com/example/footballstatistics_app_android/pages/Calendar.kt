@@ -69,7 +69,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import kotlin.text.format
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -85,7 +84,6 @@ fun CalendarPage(
     val userRepository = UserRepository(database.userDao())
     val userViewModelFactory = UserViewModelFactory(userRepository)
     val userViewModel: UserViewModel = viewModel(factory = userViewModelFactory)
-    val coroutineScope = rememberCoroutineScope()
 
     val scrollState = rememberScrollState()
     var selectedDate by remember { mutableStateOf<Date?>(null) }
@@ -163,7 +161,7 @@ fun CalendarPage(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        ViewTitle(title = "CALENDAR", image = R.drawable.calendar_img)
+        ViewTitle(title = "CALENDAR", image = R.drawable.calendar_img, navController = navController)
         Spacer(modifier = Modifier.height(32.dp))
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -344,35 +342,6 @@ fun CalendarPage(
                 }
             }
         }
-        /*
-        Column {
-            Spacer(modifier = Modifier.height(32.dp))
-            Text(
-                text = "MATCHES PLAYED THIS MONTH",
-                fontFamily = LeagueGothic,
-                fontSize = 40.sp,
-                color = white,
-                modifier = Modifier.padding(horizontal = 32.dp)
-                    .fillMaxWidth()
-                    .align(Alignment.CenterHorizontally),
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Column (Modifier.padding(horizontal = 32.dp )) {
-                for (i in 1..5) {
-                    ButtonIconObject(
-                        text = "Match $i",
-                        onClick = { navController.navigate(Screen.Match.route) },
-                        bgcolor = blue,
-                        height = 50.dp,
-                        textcolor = black,
-                        icon = R.drawable.soccer,
-                        value = "20/02/2025"
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-            }
-        }*/
     }
 }
 

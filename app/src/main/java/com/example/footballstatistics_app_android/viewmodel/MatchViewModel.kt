@@ -1,5 +1,6 @@
 package com.example.footballstatistics_app_android.viewmodel
 
+import android.location.Location
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -133,6 +134,10 @@ class MatchViewModel(private val repository: MatchRepository) : ViewModel() {
         }
     }
 
+    suspend fun getLastMatchId(userId: String): Int {
+        return repository.getLastMatchId(userId)
+    }
+
     suspend fun getExampleMatch(userId: String) = withContext(Dispatchers.IO) {
         try {
             val match = repository.getExampleMatch(userId)
@@ -172,8 +177,6 @@ class MatchViewModel(private val repository: MatchRepository) : ViewModel() {
         }
     }
 
-
-
     @RequiresApi(Build.VERSION_CODES.O)
     private fun getTodaysDate(): String {
         val today = LocalDate.now()
@@ -207,12 +210,12 @@ class MatchViewModel(private val repository: MatchRepository) : ViewModel() {
                 id = 0,
                 user_id = userId,
                 date = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                ini_time = "17:14",
-                end_time = "18:12",
-                total_time = "00:50:54",
-                away_corner_location = "51.7531458,-1.2282278",
-                home_corner_location = "51.7532447,-1.2283335",
-                kickoff_location = "51.7532636,-1.2282153",
+                ini_time = "21:30",
+                end_time = "22:30",
+                total_time = "00:60:00",
+                away_corner_location = "51.75000, -1.22900",
+                home_corner_location = "51.74946, -1.22780",
+                kickoff_location = "51.74933, -1.215799",
                 isExample = true
 
             )
@@ -253,9 +256,78 @@ class MatchViewModel(private val repository: MatchRepository) : ViewModel() {
         }
     }
 
-    //suspend fun getMatchById(matchId: String) = repository.getMatchById(matchId)
 
+    val _pitchSizeHorizontal = MutableStateFlow(0.0)
+    val pitchSizeHorizontal: StateFlow<Double> = _pitchSizeHorizontal
+    val _pitchSizeVertical = MutableStateFlow(0.0)
+    val pitchSizeVertical: StateFlow<Double> = _pitchSizeVertical
 
+    fun getMatchAndCalculatePitchSize(matchId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val match = repository.getMatchById(matchId)
+            if (match != null) {
+                val size = pitchSize(match)
+                if (size != null) {
+                    _pitchSizeHorizontal.value = size.first
+                    _pitchSizeVertical.value = size.second
+                }
+            }
+        }
+    }
+
+    fun pitchSize(match: Match): Pair<Double, Double>? {
+        val awayCorner = match.away_corner_location
+        val homeCorner = match.home_corner_location
+
+        if (awayCorner.isNullOrEmpty() || homeCorner.isNullOrEmpty()) {
+            Log.e("MatchViewModel", "Corner locations are missing or invalid.")
+            return null
+        }
+
+        val awayCornerCoords = parseCoordinates(awayCorner)
+        val homeCornerCoords = parseCoordinates(homeCorner)
+
+        if (awayCornerCoords == null || homeCornerCoords == null) {
+            Log.e("MatchViewModel", "Failed to parse corner coordinates.")
+            return null
+        }
+
+        val (awayLat, awayLon) = awayCornerCoords
+        val (homeLat, homeLon) = homeCornerCoords
+
+        val width = calculateDistance(awayLat, awayLon, awayLat, homeLon)
+        val height = calculateDistance(awayLat, awayLon, homeLat, awayLon)
+
+        Log.d("MatchViewModel", "Pitch size: width=$width meters, height=$height meters")
+        return Pair(width, height)
+    }
+
+    private fun parseCoordinates(locationString: String): Pair<Double, Double>? {
+        return try {
+            val parts = locationString.split(",")
+            if (parts.size == 2) {
+                Pair(parts[0].toDouble(), parts[1].toDouble())
+            } else {
+                null
+            }
+        } catch (e: NumberFormatException) {
+            Log.e("MatchViewModel", "Invalid coordinate format: $locationString", e)
+            null
+        }
+    }
+
+    private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val loc1 = Location("").apply {
+            latitude = lat1
+            longitude = lon1
+        }
+        val loc2 = Location("").apply {
+            latitude = lat2
+            longitude = lon2
+        }
+
+        return loc1.distanceTo(loc2).toDouble() // Returns distance in meters
+    }
 
 
 }

@@ -168,6 +168,7 @@ fun LoginPage(navController: NavController) {
                             fontSize = 16.sp,
                             fontFamily = RobotoCondensed
                         )
+
                     )
                 },
                 modifier = Modifier
@@ -267,15 +268,11 @@ fun LoginPage(navController: NavController) {
                             userViewModel.updateLoginStatus(user.id)
                         }
                         navigateWithLoading(Screen.Home.route, 2000)
-//                        navController.navigate(Screen.Home.route) {
-//                            popUpTo(Screen.Login.route) { inclusive = true }
-//                        }
                     }
                 }
             }
 
             is LoginResult.Error -> {
-               // Toast.makeText(context, loginResult.message, Toast.LENGTH_SHORT).show()
                 borderColor = red
                 isError = true
             }

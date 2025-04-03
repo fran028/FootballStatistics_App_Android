@@ -2,7 +2,6 @@ package com.example.footballstatistics_app_android.pages
 
 import android.os.Build
 import android.util.Log
-import android.widget.Space
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -47,7 +46,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -251,17 +249,6 @@ fun RegisterPage(navController: NavController){
                     value = formattedDate,
                     onValueChange = { formattedDate = it },
                     readOnly = true,
-                    /*prefix = {
-                        Text(
-                            text = "Date",
-                            fontFamily = RobotoCondensed,
-                            style = TextStyle(
-                                color = black,
-                                fontSize = 18.sp,
-                                fontFamily = RobotoCondensed
-                            )
-                        )
-                    },*/
                     placeholder ={
                         Text(
                             text = "Date",
@@ -338,28 +325,7 @@ fun RegisterPage(navController: NavController){
             TextField(
                 value = heightString,
                 onValueChange = { heightString = it },
-                /*prefix = {
-                    Text(
-                        text = "Heigth (optional)",
-                        fontFamily = RobotoCondensed,
-                        style = TextStyle(
-                            color = black,
-                            fontSize = 18.sp,
-                            fontFamily = RobotoCondensed
-                        )
-                    )
-                },
-                suffix = {
-                    Text(
-                        text = "Cm",
-                        fontFamily = RobotoCondensed,
-                        style = TextStyle(
-                            color = black,
-                            fontSize = 16.sp,
-                            fontFamily = RobotoCondensed
-                        ),
-                    )
-                },*/
+
                 placeholder ={
                     Text(
                         text = "Height (Cm)",
@@ -396,28 +362,7 @@ fun RegisterPage(navController: NavController){
             TextField(
                 value = weightString,
                 onValueChange = { weightString = it },
-                /*prefix = {
-                    Text(
-                        text = "Weight (optional)",
-                        fontFamily = RobotoCondensed,
-                        style = TextStyle(
-                            color = black,
-                            fontSize = 18.sp,
-                            fontFamily = RobotoCondensed
-                        )
-                    )
-                },
-                suffix = {
-                    Text(
-                        text = "Kg",
-                        fontFamily = RobotoCondensed,
-                        style = TextStyle(
-                            color = black,
-                            fontSize = 16.sp,
-                            fontFamily = RobotoCondensed
-                        )
-                    )
-                },*/
+
                 placeholder ={
                     Text(
                         text = "Weight (Kg)",

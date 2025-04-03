@@ -7,6 +7,10 @@ class LocationRepository (private val locationDao: LocationDao){
         locationDao.insertLocation(location)
     }
 
+    suspend fun deleteLocation(location: Location){
+        locationDao.deleteLocation(location)
+    }
+
     fun getAllLocations(): Flow<List<Location>> {
         return locationDao.getAllLocations()
     }

@@ -2,6 +2,7 @@ package com.example.footballstatistics_app_android.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,7 +34,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.footballstatistics_app_android.R
+import com.example.footballstatistics_app_android.Screen
 import com.example.footballstatistics_app_android.Theme.LeagueGothic
 import com.example.footballstatistics_app_android.Theme.black
 import com.example.footballstatistics_app_android.Theme.blue
@@ -42,7 +45,7 @@ import kotlin.io.path.moveTo
 
 
 @Composable
-fun ViewTitle(title: String, image: Int) {
+fun ViewTitle(title: String, image: Int, navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -68,7 +71,7 @@ fun ViewTitle(title: String, image: Int) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Bottom,
                     modifier = Modifier
-                        .fillMaxSize(   )
+                        .fillMaxSize()
                         .padding(horizontal = 32.dp, vertical = 32.dp)
                 ) {
                     Text(
@@ -89,6 +92,9 @@ fun ViewTitle(title: String, image: Int) {
                         painter = painterResource(id = R.drawable.logo),
                         contentDescription = "App Image",
                         modifier = Modifier.size(50.dp)
+                            .clickable {
+                                navController.navigate(Screen.Home.route)
+                            }
                     )
                 }
             }

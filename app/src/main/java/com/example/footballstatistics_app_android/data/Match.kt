@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "matchs")
 data class Match(
     @PrimaryKey(autoGenerate = true) val id: Int,
-    @ColumnInfo(name = "user_id") val user_id: String,
+    @ColumnInfo(name = "user_id") var user_id: String,
     @ColumnInfo(name = "date") val date: String,
     @ColumnInfo(name = "ini_time") val ini_time: String,
     @ColumnInfo(name = "end_time") val end_time: String,

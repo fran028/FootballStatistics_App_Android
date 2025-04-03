@@ -1,7 +1,7 @@
+package com.example.footballstatistics_app_android.charts
+
 import android.location.Location as AndroidLocation
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,21 +40,16 @@ import com.example.footballstatistics_app_android.data.Location
 import com.example.footballstatistics_app_android.data.LocationRepository
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModelFactory
-//import com.madrapps.plot.line.DataPoint
-//import com.madrapps.plot.line.LineGraph
-//import com.madrapps.plot.line.LinePlot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.io.path.moveTo
 import kotlin.math.roundToInt
-import kotlin.text.toFloat
 
-
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DistanceLineChart(match_id: Int, color: Color = blue) {
+fun DistanceLineChart(matchId: Int, color: Color = blue) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    // Get Data from Database
     val database = AppDatabase.getDatabase(context)
     val locationRepository = LocationRepository(database.locationDao())
     val locationViewModelFactory = LocationViewModelFactory(locationRepository)
@@ -66,36 +59,42 @@ fun DistanceLineChart(match_id: Int, color: Color = blue) {
     var hasLocation by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
 
+    // Check if there is a location for the match
     LaunchedEffect(key1 = Unit) {
         scope.launch(Dispatchers.IO) {
-            Log.d("DistanceLineChart", "Getting locations for match: $match_id")
-            hasLocation = locationViewModel.checkIfMatchHasLocation(match_id.toString())
+            Log.d("com.example.footballstatistics_app_android.charts.DistanceLineChart", "Getting locations for match: $matchId")
+            hasLocation = locationViewModel.checkIfMatchHasLocation(matchId.toString())
             if (hasLocation) {
-                locationViewModel.getLocationsByMatchId(match_id.toString())
+                locationViewModel.getLocationsByMatchId(matchId.toString())
             } else {
-                Log.d("DistanceLineChart", "No locations found for match: $match_id")
+                Log.d("com.example.footballstatistics_app_android.charts.DistanceLineChart", "No locations found for match: $matchId")
             }
         }
     }
 
+    // Once we have the locations, draw the chart
     LaunchedEffect(key1 = locationDataList) {
         isLoading = false
     }
 
     if (isLoading) {
-        Log.d("DistanceLineChart", "Loading...")
+        // Show Loading message
+        Log.d("com.example.footballstatistics_app_android.charts.DistanceLineChart", "Loading...")
         NoDataAvailable("Loading...")
     } else {
         if (locationDataList.isNotEmpty()) {
-            Log.d("DistanceLineChart", "Drawing linechart for match: $match_id")
+            // Draw line chart
+            Log.d("com.example.footballstatistics_app_android.charts.DistanceLineChart", "Drawing linechart for match: $matchId")
             LineChartCompose(locationDataList, color)
         } else {
-            Log.d("DistanceLineChart", "No available data for match: $match_id")
+            // Show no data available message
+            Log.d("com.example.footballstatistics_app_android.charts.DistanceLineChart", "No available data for match: $matchId")
             NoDataAvailable("No available data")
         }
     }
 }
 
+// Show text that inform the user about the possible states of the chart
 @Composable
 private fun NoDataAvailable(text: String) {
     Box(
@@ -111,6 +110,8 @@ private fun NoDataAvailable(text: String) {
     }
 }
 
+// Transform the data to fit the chart
+// Call the DrawLineChart function and sets it in a compose element
 @Composable
 fun LineChartCompose(locations: List<Location?>, color: Color) {
     Box(
@@ -120,11 +121,13 @@ fun LineChartCompose(locations: List<Location?>, color: Color) {
             .background(black)
     ) {
         val distanceData = calculateCumulativeDistancePerMinute(locations)
-        Log.d("DistanceLineChart", "distanceData: $distanceData")
+        Log.d("com.example.footballstatistics_app_android.charts.DistanceLineChart", "distanceData: $distanceData")
         DrawLineChart(distanceData, color)
     }
 }
 
+// Gets the transformed data as a parameter
+// And draws it in a canvas
 @Composable
 fun DrawLineChart(distanceData: Map<Int, Double>, color: Color) {
     val textMeasurer = rememberTextMeasurer()
@@ -137,7 +140,7 @@ fun DrawLineChart(distanceData: Map<Int, Double>, color: Color) {
         val height = size.height
         // Find the maximum distance and time
         val maxDistance = distanceData.values.maxOrNull() ?: 0.0
-        val maxTime = distanceData.keys.maxOrNull() ?: 0
+        val maxTime = (distanceData.keys.maxOrNull() ?: 0)
 
         // Create a path for the line chart
         val linePath = Path()
@@ -161,7 +164,7 @@ fun DrawLineChart(distanceData: Map<Int, Double>, color: Color) {
             fillPath.lineTo(width, height)
             fillPath.close()
 
-            //fill the path
+            // Fill the path
             drawPath(
                 path = fillPath,
                 brush = Brush.verticalGradient(
@@ -179,7 +182,7 @@ fun DrawLineChart(distanceData: Map<Int, Double>, color: Color) {
                 style = Stroke(width = 3.dp.toPx())
             )
 
-
+            // Draw x and y axis
             drawLine(
                 color = Color.White,
                 start = Offset(0f, 0f),
@@ -192,13 +195,15 @@ fun DrawLineChart(distanceData: Map<Int, Double>, color: Color) {
                 end = Offset(width, height),
                 strokeWidth = 3.dp.toPx()
             )
-            //Draw distance labels
+
+            //Draw distance labels (y-axis)
             val distanceLabelCount = 5 // number of labels
             for (i in 0 until distanceLabelCount) {
                 val yPos = height - (i.toFloat() / (distanceLabelCount - 1).toFloat()) * height
                 val distanceValue = (maxDistance * (i.toFloat() / (distanceLabelCount - 1).toFloat())).roundToInt()
+                val distanceValueInKilometers = roundToTwoDecimals(distanceValue / 1000.0)
                 val textLayoutResult = textMeasurer.measure(
-                    text = "$distanceValue m",
+                    text = "$distanceValueInKilometers Km",
                     style = TextStyle(color = Color.White, fontSize = 10.sp)
                 )
                 drawText(
@@ -206,65 +211,45 @@ fun DrawLineChart(distanceData: Map<Int, Double>, color: Color) {
                     topLeft = Offset(-textLayoutResult.size.width.toFloat() - 5.dp.toPx(), yPos - textLayoutResult.size.height / 2.toFloat())
                 )
             }
-            //Draw time labels
+
+            //Draw time labels (x-axis)
             val timeLabelCount = 5
             for (i in 0 until timeLabelCount) {
                 val xPos = (i.toFloat() / (timeLabelCount - 1).toFloat()) * width
-                val timeValue = (maxTime * (i.toFloat() / (timeLabelCount - 1).toFloat())).roundToInt()
+                val timeValue = (maxTime/2 * (i.toFloat() / (timeLabelCount - 1).toFloat())).roundToInt()
                 val textLayoutResult = textMeasurer.measure(
                     text = "$timeValue min",
                     style = TextStyle(color = Color.White, fontSize = 10.sp)
                 )
                 drawText(
                     textLayoutResult,
-                    topLeft = Offset(xPos - textLayoutResult.size.width / 2.toFloat(), height)
+                    topLeft = Offset(xPos - textLayoutResult.size.width / 2.toFloat(), height+5)
                 )
             }
         }
     }
 }
 
-fun calculateDistancePerMinute(locations: List<Location?>): Map<Int, Double> {
-    val distancePerMinute = mutableMapOf<Int, Double>()
-    if (locations.size < 2) {
-        return distancePerMinute // Need at least two points to calculate distance
-    }
-
-    val sortedLocations = locations.sortedBy { it!!.timestamp }
-    val firstTimestamp = sortedLocations.first()!!.timestamp
-    sortedLocations.forEachIndexed { index, location ->
-        if (index < sortedLocations.size - 1) {
-            val loc2 = sortedLocations[index + 1]
-            // Calculate the minute from the start of the match
-            val minute = ((loc2!!.timestamp.toDouble() - firstTimestamp.toDouble()) / 1000 / 60).roundToInt()
-            // Calculate distance
-            val result = FloatArray(1)
-            AndroidLocation.distanceBetween(
-                location!!.latitude.toDouble(),
-                location.longitude.toDouble(),
-                loc2.latitude.toDouble(),
-                loc2.longitude.toDouble(),
-                result
-            )
-            val distance = result[0].toDouble()
-
-            // Update the total distance for the minute
-            distancePerMinute[minute] = distancePerMinute.getOrDefault(minute, 0.0) + distance
-        }
-    }
-    return distancePerMinute
+private fun roundToTwoDecimals(number: Double): Double {
+    val formattedNumber = String.format("%.2f", number)
+    return formattedNumber.toDouble()
 }
 
+// Calculates the total distance between every consecutive location
+// Returns a map with the time as key and the distance as value
 fun calculateCumulativeDistancePerMinute(locations: List<Location?>): Map<Int, Double> {
     val distancePerMinute = mutableMapOf<Int, Double>()
     if (locations.size < 2) {
         return distancePerMinute // Need at least two points to calculate distance
     }
 
+    // Sort the locations by timestamp
     val sortedLocations = locations.sortedBy { it!!.timestamp }
     val firstTimestamp = sortedLocations.first()!!.timestamp
     var cumulativeDistance = 0.0
 
+    // Cycle through the locations
+    // Calculate the distance between each consecutive location
     sortedLocations.forEachIndexed { index, location ->
         if (index < sortedLocations.size - 1) {
             val loc2 = sortedLocations[index + 1]

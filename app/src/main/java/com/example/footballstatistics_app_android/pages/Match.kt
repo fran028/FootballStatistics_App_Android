@@ -1,25 +1,20 @@
 package com.example.footballstatistics_app_android.pages
 
-import DistanceLineChart
-import HeatmapChart
+import com.example.footballstatistics_app_android.charts.DistanceLineChart
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,8 +27,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -49,27 +42,23 @@ import com.example.footballstatistics_app_android.Theme.green
 import com.example.footballstatistics_app_android.Theme.red
 import com.example.footballstatistics_app_android.Theme.white
 import com.example.footballstatistics_app_android.Theme.yellow
+import com.example.footballstatistics_app_android.charts.DirectionChart
 import com.example.footballstatistics_app_android.components.ColorBar
 import com.example.footballstatistics_app_android.components.StatBox
 import com.example.footballstatistics_app_android.components.ViewTitle
 import com.example.footballstatistics_app_android.data.AppDatabase
-import com.example.footballstatistics_app_android.data.Match
 import com.example.footballstatistics_app_android.data.MatchRepository
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModel
 import com.example.footballstatistics_app_android.viewmodel.MatchViewModelFactory
-import androidx.compose.runtime.collectAsState
-import com.example.footballstatistics_app_android.Screen
 import com.example.footballstatistics_app_android.charts.DistanceBarChart
-//import com.example.footballstatistics_app_android.charts.DistanceLineChart
+import com.example.footballstatistics_app_android.charts.HeatmapChart
 import com.example.footballstatistics_app_android.charts.TimeInSideChart
-import com.example.footballstatistics_app_android.charts.TimelineChart
+import com.example.footballstatistics_app_android.components.ButtonObject
 import com.example.footballstatistics_app_android.data.LocationRepository
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModel
 import com.example.footballstatistics_app_android.viewmodel.LocationViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -90,7 +79,10 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
     val match by matchViewModel.match.collectAsState(initial = null)
     val totalDistance by locationViewModel.totalDistance.collectAsState(initial = 0.0)
     val topSpeed by locationViewModel.topSpeed.collectAsState(initial = 0.0)
-    val averagePace by locationViewModel.averagePace.collectAsState(initial = 0.0)
+    val averageSpeed by locationViewModel.averageSpeed.collectAsState(initial = 0.0)
+    val pitchSizeHorizontal by matchViewModel.pitchSizeHorizontal.collectAsState(initial = 0.0)
+    val pitchSizeVertical by matchViewModel.pitchSizeVertical.collectAsState(initial = 0.0)
+
     LaunchedEffect(match_id) {
         Log.d("MatchPage", "Fetching match with ID: $match_id")
         coroutineScope.launch(Dispatchers.IO) {
@@ -100,8 +92,10 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
             Log.d("MatchPage", "Calculated total distance: $totalDistance")
             locationViewModel.calculateTopSpeedForMatch(match_id.toString())
             Log.d("MatchPage", "Calculated top speed: $topSpeed")
-            locationViewModel.calculateAveragePaceForMatch(match_id.toString())
-            Log.d("MatchPage", "Calculated average pace: $averagePace")
+            locationViewModel.calculateAverageSpeedForMatch(match_id.toString())
+            Log.d("MatchPage", "Calculated average speed: $averageSpeed")
+            matchViewModel.getMatchAndCalculatePitchSize(match_id)
+            Log.d("MatchPage", "Calculated pitch size: $pitchSizeHorizontal x $pitchSizeVertical")
         }
 
     }
@@ -112,8 +106,11 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
 
     var velocitySelected by remember { mutableStateOf(false) }
     var distanceSelected by remember { mutableStateOf(true) }
-    var paceSelected by remember { mutableStateOf(false) }
+    var speedSelected by remember { mutableStateOf(false) }
     var chartName by remember { mutableStateOf("") }
+
+    val chartTitleSize = 22.sp
+    val titleSize = 50.sp
 
     Column(
         modifier = Modifier
@@ -123,7 +120,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        ViewTitle(title = "MATCH DATA", image = R.drawable.match_img)
+        ViewTitle(title = "MATCH DATA", image = R.drawable.match_img, navController = navController)
         Spacer(modifier = Modifier.height(24.dp))
         if (currentMatch.isExample) {
             Row (
@@ -171,6 +168,19 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
             )
 
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 32.dp)) {
+            Text(
+                text = "Pitch size: %.2fm x %.2fm ".format( pitchSizeHorizontal, pitchSizeVertical ),
+                fontFamily = LeagueGothic,
+                fontSize = 32.sp,
+                color = white,
+            )
+        }
 
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -185,11 +195,11 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
                 StatBox(
                     onclick = { velocitySelected = true
                                 distanceSelected = false
-                                paceSelected = false
-                                chartName = "VELOCITY"
+                                speedSelected = false
+                                chartName = "TOP SPEED"
                     },
                     icon = R.drawable.speedometer,
-                    text = "VELOCITY",
+                    text = "TOP SPEED",
                     value = "%.2f km/h".format(topSpeed),
                     avg = "",
                     bgcolor = if(velocitySelected) blue else white,
@@ -203,11 +213,11 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
                     onclick = {
                         velocitySelected = false
                         distanceSelected = true
-                        paceSelected = false
+                        speedSelected = false
                         chartName = "DISTANCE"
                     },
                     icon = R.drawable.sneaker,
-                    text = "DISTANCE ",
+                    text = "DISTANCE",
                     value = "%.2f km".format(totalDistance),
                     avg = "",
                     bgcolor = if(distanceSelected) yellow else white,
@@ -220,40 +230,49 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
                     onclick = {
                         velocitySelected = false
                         distanceSelected = false
-                        paceSelected = true
-                        chartName = "RUNNING PACE"
+                        speedSelected = true
+                        chartName = "AVERAGE SPEED"
                     },
                     icon = R.drawable.pace,
-                    text = "PACE ",
-                    value = "%.2f km/h".format(averagePace),
+                    text = "AVERAGE SPEED",
+                    value = "%.2f \n km/h".format(averageSpeed),
                     avg = "",
-                    bgcolor = if(paceSelected) green else white,
-                    textcolor = if(paceSelected) green else white,
+                    bgcolor = if(speedSelected) green else white,
+                    textcolor = if(speedSelected) green else white,
                     height = 125.dp,
                     width = 100.dp,
-                    selected = paceSelected
+                    selected = speedSelected
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
         Text(
+            text = "MATCH CHARTS",
+            fontFamily = LeagueGothic,
+            fontSize = titleSize,
+            color = white,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
             text = "LOCATION HEATMAP",
             fontFamily = RobotoCondensed,
-            fontSize = 26.sp,
+            fontSize = chartTitleSize,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 36.dp )){
-            HeatmapChart( match_id )
+            HeatmapChart( match_id, green )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
         Text(
             text = "POSITIONING OVER TIME BY SIDE",
             fontFamily = RobotoCondensed,
-            fontSize = 26.sp,
+            fontSize = chartTitleSize,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
@@ -261,24 +280,26 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         Column (Modifier.padding(horizontal = 36.dp )){
             TimeInSideChart(match_id, yellow, green)
         }
-        /*Spacer(modifier = Modifier.height(16.dp))
+
+
+        Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = "CHART - TIMELINE",
+            text = "DIRECTION MOVED ON MATCH TIME",
             fontFamily = RobotoCondensed,
-            fontSize = 26.sp,
+            fontSize = chartTitleSize,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Column (Modifier.padding(horizontal = 36.dp )){
-            TimelineChart(match_id, blue)
-        }*/
+            DirectionChart(match_id, yellow, green)
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
         Text(
             text = "TOTAL DISTANCE OVER TIME",
             fontFamily = RobotoCondensed,
-            fontSize = 26.sp,
+            fontSize = chartTitleSize,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
@@ -291,7 +312,7 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         Text(
             text = "DISTANCE PER MINUTE",
             fontFamily = RobotoCondensed,
-            fontSize = 26.sp,
+            fontSize = chartTitleSize,
             color = white,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
@@ -299,6 +320,42 @@ fun MatchPage(modifier: Modifier = Modifier, navController: NavController, match
         Column (Modifier.padding(horizontal = 36.dp )){
             DistanceBarChart(match_id, blue)
         }
+
+        if (!currentMatch.isExample) {
+            Spacer(modifier = Modifier.height(32.dp))
+            Text(
+                text = "MATCH SETTINGS",
+                fontFamily = LeagueGothic,
+                fontSize = titleSize,
+                color = white,
+                modifier = Modifier.padding(horizontal = 32.dp)
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Row (
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.Bottom,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 30.dp)
+            ) {
+                ButtonObject(
+                    text = "DELETE MATCH",
+                    onClick = {
+                        coroutineScope.launch(Dispatchers.IO) {
+                            matchViewModel.deleteMatch(currentMatch)
+                            locationViewModel.deleteLocationsFromMatch(match_id.toString())
+                            navController.navigate("home")
+                        }
+                    },
+                    bgcolor = red,
+                    textcolor = black,
+                    width = 550.dp,
+                    height = 60.dp
+                )
+            }
+
+        }
+
         Spacer(modifier = Modifier.height(30.dp))
     }
 }

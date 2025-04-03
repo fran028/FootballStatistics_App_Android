@@ -64,16 +64,16 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
 
     private fun createLocationFromCsvRow(row: Array<String>, matchId: String): Location? {
         // Check if the row has the correct number of columns
-        if (row.size != 3) {
+        if (row.size != 5) {
             Log.e("LocationViewModel", "Skipping row with incorrect number of columns: ${row.contentToString()}")
             return null
         }
         return try {
             Location(
                 match_id = matchId,
-                latitude = row[0],
-                longitude = row[1],
-                timestamp = row[2].substringBefore("."),
+                latitude = row[2],
+                longitude = row[3],
+                timestamp = row[4],
             )
         } catch (e: NumberFormatException) {
             Log.e("LocationViewModel", "Error parsing numbers from row: ${row.contentToString()}", e)
@@ -91,8 +91,8 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
     val topSpeed: StateFlow<Double> = _topSpeed
     private val _totalDistance = MutableStateFlow(0.0)
     val totalDistance: StateFlow<Double> = _totalDistance
-    private val _averagePace = MutableStateFlow(0.0)
-    val averagePace: StateFlow<Double> = _averagePace
+    private val _averageSpeed = MutableStateFlow(0.0)
+    val averageSpeed: StateFlow<Double> = _averageSpeed
 
     fun getLocationsByMatchId(matchId: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -129,7 +129,7 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             val locations = repository.getLocationsByMatchId(matchId)
             if (locations != null) {
-                val topSpeed = calculateTopSpeed(locations) / 1000
+                val topSpeed = calculateTopSpeed(locations)
                 _topSpeed.value = topSpeed
                 Log.d("LocationViewModel", "Top speed for match $matchId: $topSpeed m/s")
             } else {
@@ -138,13 +138,13 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
         }
     }
 
-    fun calculateAveragePaceForMatch(matchId: String) {
+    fun calculateAverageSpeedForMatch(matchId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val locations = repository.getLocationsByMatchId(matchId)
             if (locations != null) {
-                val averagePace = calculateAveragePace(locations)
-                _averagePace.value = averagePace
-                Log.d("LocationViewModel", "Average pace for match $matchId: $averagePace min/km")
+                val averageSpeed = calculateAverageSpeed(locations)
+                _averageSpeed.value = averageSpeed
+                Log.d("LocationViewModel", "Average speed for match $matchId: $averageSpeed min/km")
             } else {
                 Log.d("LocationViewModel", "No locations found for match: $matchId")
             }
@@ -221,8 +221,9 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
         MPH // Miles per hour
     }
 
-    private fun calculateAveragePace(locations: List<Location>): Double {
+    private fun calculateAverageSpeed(locations: List<Location>): Double {
         val totalDistanceMeters = calculateTotalDistance(locations)
+        Log.d("LocationViewModel", "Total distance for calculating speed: $totalDistanceMeters meters")
         if (totalDistanceMeters == 0.0 || locations.size < 2) {
             return 0.0
         }
@@ -231,20 +232,30 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
         val lastTimestamp = locations.last().timestamp.toDouble()
         // Convert the difference to seconds and then make it a double to avoid int division
         val totalTimeSeconds = (lastTimestamp - firstTimestamp) / 1000.0
-        Log.d("LocationViewModel", "Total time for calculating pace: $totalTimeSeconds seconds")
+        Log.d("LocationViewModel", "Total time for calculating speed: $totalTimeSeconds seconds")
 
         // Convert total distance to kilometers
         val totalDistanceKm = totalDistanceMeters / 1000.0
-
-        // Calculate average pace in minutes per kilometer
-        val averagePaceMinPerKm = if (totalDistanceKm > 0) {
-            totalTimeSeconds / 60.0 / totalDistanceKm
+        Log.d("LocationViewModel", "Total distance in kilometers for calculating speed: $totalDistanceKm km")
+        val totalTimeHours = totalTimeSeconds / 3600.0
+        Log.d("LocationViewModel", "Total time in hours for calculating speed: $totalTimeHours hours")
+        // Calculate average speed in hour per kilometer
+        val averageSpeedHourPerKm = if (totalDistanceKm > 0) {
+            totalDistanceKm / totalTimeHours
         } else {
             0.0
         }
-        Log.d("LocationViewModel", "Average pace in minutes per km: $averagePaceMinPerKm min/km")
+        Log.d("LocationViewModel", "Average speed in hours per km: $averageSpeedHourPerKm hours/km")
 
-        return averagePaceMinPerKm
+        // Calculate average speed in minutes per kilometer
+        val averageSpeedMinPerKm = if (totalDistanceKm > 0) {
+            totalDistanceKm/ totalTimeSeconds / 60.0
+        } else {
+            0.0
+        }
+        Log.d("LocationViewModel", "Average speed in minutes per km: $averageSpeedMinPerKm min/km")
+
+        return averageSpeedHourPerKm
     }
 
     private val _allMatchesDistance = MutableStateFlow(0.0)
@@ -268,6 +279,21 @@ class LocationViewModel(private val repository: LocationRepository) : ViewModel(
                 }
             }
             _allMatchesDistance.value = totalDistance
+        }
+    }
+
+    fun deleteLocationsFromMatch(matchId: String){
+        viewModelScope.launch(Dispatchers.IO) {
+            val locations = repository.getLocationsByMatchId(matchId)
+            if (locations != null) {
+                for (location in locations) {
+                    repository.deleteLocation(location)
+                    Log.d("LocationViewModel", "Location deleted: $location")
+                }
+                Log.d("LocationViewModel", "All locations for match $matchId deleted")
+            } else {
+                Log.d("LocationViewModel", "No locations found for match: $matchId")
+            }
         }
     }
 }

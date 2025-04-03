@@ -1,6 +1,5 @@
 package com.example.footballstatistics_app_android.data
 
-import android.util.Log
 import kotlinx.coroutines.flow.Flow
 
 class MatchRepository (private val matchDao: MatchDao) {
@@ -23,6 +22,10 @@ class MatchRepository (private val matchDao: MatchDao) {
 
     fun getLastMatches(amount: Int, userId: String): List<Match> {
         return matchDao.getLastMatches(amount, userId)
+    }
+
+    suspend fun getLastMatchId(userId: String): Int {
+        return matchDao.getLastMatchId(userId)
     }
 
     fun getMatchesBetweenDates(startDate: String, endDate: String, userId: String): List<Match> {

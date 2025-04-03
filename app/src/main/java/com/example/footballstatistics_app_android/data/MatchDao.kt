@@ -25,6 +25,9 @@ interface MatchDao {
     @Query("SELECT * FROM matchs WHERE user_id = :userId ORDER BY date DESC LIMIT :amount")
     fun getLastMatches(amount: Int, userId: String): List<Match>
 
+    @Query("SELECT id FROM matchs WHERE user_id = :userId ORDER BY id DESC LIMIT 1")
+    suspend fun getLastMatchId(userId: String): Int
+
     @Query("SELECT * FROM matchs WHERE (date BETWEEN :startDate AND :endDate) AND user_id = :userId ORDER BY date DESC")
     fun getMatchesBetweenDates(startDate: String, endDate: String, userId: String): List<Match>
 
